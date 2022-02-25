@@ -35,7 +35,7 @@ public class Card {
 
     @Override
     public String toString() {
-        return "ID=" + ID; 
+        return ID + " "; 
     }
 
 

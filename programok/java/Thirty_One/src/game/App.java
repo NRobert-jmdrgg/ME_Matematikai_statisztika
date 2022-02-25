@@ -1,6 +1,9 @@
 package game;
 
 import java.util.Stack;
+
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -63,85 +66,91 @@ public class App {
 
     public static Stack<Card> stock_cards = new Stack<>();
     public static Stack<Card> discarded_cards = new Stack<>();
+
+    private static int roundCounter = 0;
     
+
     public static void main(String[] args) {
-        stock_cards.addAll(Arrays.asList(cards));
-        Collections.shuffle(stock_cards);
         
         
-        Player[] players = {
-            new Player("A", getThreeCardsFromStock(), 5),
-            new Player("B", getThreeCardsFromStock(), 5),
-            new Player("C", getThreeCardsFromStock(), 5),
-            new Player("D", getThreeCardsFromStock(), 5)
-        };
+        ArrayList<Player> players = new ArrayList<>();
 
-        // első felfordított lap
-        discarded_cards.add(stock_cards.pop());
-
-        for (int i = 0; i < players.length; i++) {
-            System.out.println(discarded_cards);
+        players.add(new Player("A", 5));
+        players.add(new Player("B", 5));
+        players.add(new Player("C", 5));
+        players.add(new Player("D", 5));
         
-            System.out.println(players[i]);
+        while (players.size() > 1) {
+            stock_cards.addAll(Arrays.asList(cards));
+            Collections.shuffle(stock_cards);
             
-            players[i].swap();
+            // első felfordított lap
+            if (discarded_cards.size() == 0) {
+                discarded_cards.add(stock_cards.pop());
+            }
+            // kapnak 3 kártyát
+            for (int index = 0; index < players.size(); index++) {
+                players.get(index).setCards(getThreeCardsFromStock());
+            } 
             
-            System.out.println(players[i]);
+            roundCounter++;
+            System.out.println("===== ROUND : " + roundCounter + " =====");
 
-            System.out.println(discarded_cards);
+            int knocker = -1;
+            for (int i = 0; i < players.size(); i++) {
+                
+                System.out.println(players.get(i));
+                System.out.println(players.get(i).getLives());
+                 
+                if (players.get(i).decideToKnock()) {
+                    System.out.println("PLAYER : " + players.get(i).getName() + " Knocked");
+                    knocker = i;
+                    for (int j = 0; j < players.size(); j++) {
+                        if (j != knocker) {
+                            System.out.println(players.get(j));
+                            System.out.println(players.get(j).getLives());
+                            if (players.get(j).getLives() > 0) {
+                                players.get(j).swap();;
+                            }
+                        }
+                    }
+                } else {
+                    if (players.get(i).getLives() > 0) {
+                        players.get(i).swap();
+                    }
+                }
 
-            System.out.println("-------------------------");
-   
+                if (players.get(i).getLives() == 0) {
+                    // players.get(i).discardAllCards();
+                    players.remove(i);
+                }
+
+            }
+            if (players.size() > 1) {
+                App.punishLosers(players);    
+            }
+            
+            App.resetKnocks(players);
+            
+
+            System.out.println("Summary");
+            for (Player player : players) {
+                System.out.println(player.getSummary());
+            }
+
+            System.out.println("Eldobott kártyák: " + discarded_cards);
+            
+            discarded_cards.clear();
         }
+        
 
-        int[] losers = decideLosers(players);
-
-        punishLosers(players, losers);
-
+        System.out.println("The winner is : ");
         for (Player player : players) {
-            System.out.println(player.getName() + " " + player.getHandValue() +" " + player.getLives());
+            System.out.println(player);
+            System.out.println(player.getLives());
         }
 
-        // System.out.println(players[1]);
-        
-        // players[1].swap();
-        
-        // System.out.println(players[1]);
 
-        // System.out.println(discarded_cards);
-
-        // System.out.println(players[2]);
-        
-        // players[2].swap();
-        
-        // System.out.println(players[2]);
-
-        // System.out.println(players[3]);
-        
-        // players[3].swap();
-        
-        // System.out.println(players[3]);
-        //ameddig van legalább 2 játékosnak élete
-        // while (checkLives(players)) {
-        //     for (int i = 0; i < players.length; i++) {
-        //         players[i].swap();
-        //     }
-
-        //     int[] losers = decideLosers(players);
-        //     punishLosers(players, losers);
-
-        //     if (stock_cards.size() == 0) {
-        //         System.out.println("Elfogytak a lapok");
-        //         break;
-        //     }
-        // }
-
-        // for (int i = 0; i < players.length; i++) {
-        //     if (players[i].getLives() > 0) {
-        //         System.out.println("The winner is : " + players[i]);
-        //         break;
-        //     }
-        // }
         
     }
 
@@ -155,56 +164,36 @@ public class App {
         return new_cards;
     }
 
-    private static int[] decideLosers(Player[] players) {
-        int[] hands = new int[4];
-        for (int i = 0; i < hands.length; i++) {
-            hands[i] = players[i].getHandValue();
-        }
-
-        int min = hands[0];
-
-        for (int i = 1; i < hands.length; i++) {
-            if (hands[i] < min) {
-                min = hands[i];
+    private static int getMinHand(ArrayList<Player> players) {
+        int min = players.get(0).getHandValue();
+        for (int i = 1; i < players.size(); i++) {
+            if (players.get(i).getHandValue() < min) {
+                min = players.get(i).getHandValue();
             }
         }
 
-        int c = 0;
-        for (int i = 0; i < hands.length; i++) {
-            if (hands[i] == min) {
-                c++;
+        return min;
+    }
+
+    private static void punishLosers(ArrayList<Player> players) {
+        int min = getMinHand(players);
+
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getHandValue() == min) {
+                players.get(i).decreaseLives(1);
             }
         }
 
-        int[] losers = new int[c];
-        int j = 0;
-        for (int i = 0; i < losers.length; i++) {
-            if (hands[i] == min) {
-                losers[j++] = i;
-            }   
-        }
-
-        return losers;
     }
 
-    private static void punishLosers(Player[] players, int[] losers) {
-        for (int i : losers) {
-            players[i].decreaseLives(1);
-        }
+    public static int getRoundCounter() {
+        return roundCounter;
     }
 
-    private static boolean checkLives(Player[] p) {
-        if (p[0].getLives() > 0 && (p[1].getLives() > 0 || p[2].getLives() > 0 || p[3].getLives() > 0)) {
-            return true;
-        } else if (p[1].getLives() > 0 && (p[0].getLives() > 0 || p[2].getLives() > 0 || p[3].getLives() > 0)) {
-            return true;
-        } else if (p[2].getLives() > 0 && (p[0].getLives() > 0 || p[1].getLives() > 0 || p[3].getLives() > 0)) {
-            return true;
-        } else if (p[3].getLives() > 0 && (p[0].getLives() > 0 || p[1].getLives() > 0 || p[2].getLives() > 0)) {
-            return true;
+    private static void resetKnocks(ArrayList<Player> players) {
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).setKnock(false);
         }
-
-        return false;
-    }    
+    }
 
 }

@@ -1,23 +1,25 @@
 package game;
 
 import java.util.Arrays;
+import java.util.Random;
+
 // import game.App;
 
 public class Player {
     private String name;
-    private Card[] cards = new Card[3];
+    private Card[] cards;
     private int lives;
     private boolean knocked;
-    private boolean draw_card;
     private String Dominant;
     private int numberOfDominantCards;
     
-    public Player(String name, Card[] cards, int lives) {
+    public Player(String name, int lives) {
         this.name = name;
-        this.cards = cards;
+        // this.cards = cards;
         this.lives = lives;
-        this.Dominant = this.getDominantCardType();
-        this.numberOfDominantCards = this.countDominantCards();
+        // this.Dominant = this.getDominantCardType();
+        // this.numberOfDominantCards = this.countDominantCards();
+        this.knocked = false;
     }
 
     public String getName() {
@@ -50,14 +52,6 @@ public class Player {
 
     public void knock() {
         this.knocked = true;
-    }
-
-    public boolean drawn_card() {
-        return draw_card;
-    }
-
-    public void Draw_card() {
-        this.draw_card = true;
     }
 
     public String getDominant() {
@@ -153,51 +147,6 @@ public class Player {
         return count;
     }
 
-    private boolean hasThisTypeOfCard(Card new_card) {
-        for (Card card : cards) {
-            if (card.getSuit().equals(new_card.getSuit())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private int countNondominantCardValues() {
-        int val = 0;
-        for (Card card : cards) {
-            if (card.getSuit() != this.getDominant()) {
-                val += card.getValue();
-            }
-        }
-
-        return val;
-    }
-
-    private Card[] getCardsByType(String suit) {
-        int c = 0;
-        for (Card card : cards) {
-            if (card.getSuit().equals(suit)) {
-                c++;
-            }
-        }
-
-        Card[] tcards = null;
-
-        if (c != 0) {
-            tcards = new Card[c];
-            int j = 0;
-            for (int i = 0; i < cards.length; i++) {
-                if (cards[i].getSuit().equals(suit)) {
-                    tcards[j] = cards[i];
-                    j++;
-                }
-            }
-        }
-    
-        return tcards;
-    }
-
     public Card cardMin(Card a, Card b) {
         if (a.getValue() <= b.getValue()) {
             return a;
@@ -210,6 +159,10 @@ public class Player {
         Card card_to_swap = null;
         Card min_card = null;
         
+        this.numberOfDominantCards = this.countDominantCards();
+
+        System.out.println("Number of dominant cards: " + this.getNumberOfDominantCards());
+
         switch (this.getNumberOfDominantCards()) {
             case 0:
                 // megnézzük, hogy van-e ilyen típusú kártya, ha van elmentjuk az indexet
@@ -308,6 +261,7 @@ public class Player {
                 }
                 break;
             case 3:
+                System.out.println("Dominant type: " + this.getDominant());
                 if (!new_card.getSuit().equals(this.getDominant())) {
                     if (new_card.getValue() > this.getHandValue()) {
                         card_to_swap = this.getMinCard();
@@ -325,7 +279,7 @@ public class Player {
         this.Dominant = getDominantCardType();
         Card swap_card = this.decideToSwap(App.discarded_cards.peek());
         boolean swap_from_stock = false;
-        if (swap_card == null) {
+        if (swap_card == null && App.stock_cards.size() > 0) {
             System.out.println("Stock card: " + App.stock_cards.peek());
             swap_card = this.decideToSwap(App.stock_cards.peek());
             if (swap_card == null) {
@@ -349,6 +303,51 @@ public class Player {
         }
     }
 
+    public boolean decideToKnock() {
+        // formula ami alapján random knockolnak a játékosok. (csak 1 knockolhat)
+        
+        if (this.getHandValue() == 31) {
+            this.setKnock(true);
+            return true;    
+        }
+
+        double knock_chance;
+        int div;
+
+        if (App.getRoundCounter() < 3 && App.getRoundCounter() >= 1) {
+            div = App.getRoundCounter() + 1;
+        } else {
+            div = 4;
+        }
+
+        if (this.getHandValue() <= 15) {
+            knock_chance = ( this.getHandValue() / 31.0 ) / div;
+        } else {
+            knock_chance = ( this.getHandValue() / 31.0 );
+        }
+
+        System.out.println("knock chance:" + knock_chance);
+
+        Random rand = new Random();
+        float f = rand.nextFloat();
+
+        System.out.println("Random: " + f);
+
+        if (f < knock_chance) {
+            this.setKnock(true);
+            return true;
+        }
+
+        return false;
+    }
     
+    public void setKnock(boolean b) {
+        this.knocked = b;
+    }
+
+    public String getSummary() {
+        return "Name: " + this.name + " Cards: " + Arrays.toString(this.cards) + " hand value: " + this.getHandValue() + " Lives: " + this.lives;
+    }
+
     
 }
