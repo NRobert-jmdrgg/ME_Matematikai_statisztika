@@ -206,7 +206,7 @@ public class Player {
         }
     }
 
-    private Card decideToSwapFromDiscCard(Card new_card) {
+    private Card decideToSwap(Card new_card) {
         Card card_to_swap = null;
         Card min_card = null;
         
@@ -275,7 +275,7 @@ public class Player {
                 } else { // Nem domináns szín
                     // két lehetőség van Ha az új kártya típusa megegyezik a nem domináns kártya típusával vagy nem
                     for (int i = 0; i < cards.length; i++) {
-                        if (!cards[i].getSuit().equals(this.getDominantCardType())) {
+                        if (!cards[i].getSuit().equals(this.getDominant())) {
                             if (cards[i].getSuit().equals(new_card.getSuit())) { // ha a nem domináns és az uj kartya tipusa megegyezik
                                 // meg kell nézni, hogy a domináns kártyák összege kissebb, mint az új kombináció
                                 switch (i) {
@@ -322,11 +322,26 @@ public class Player {
     }
 
     public void swap() {
-        Card swap_card = this.decideToSwapFromDiscCard(App.discarded_cards.peek());
+        this.Dominant = getDominantCardType();
+        Card swap_card = this.decideToSwap(App.discarded_cards.peek());
+        boolean swap_from_stock = false;
+        if (swap_card == null) {
+            System.out.println("Stock card: " + App.stock_cards.peek());
+            swap_card = this.decideToSwap(App.stock_cards.peek());
+            if (swap_card == null) {
+                App.discarded_cards.push(App.stock_cards.pop());
+            }
+            swap_from_stock = true;
+        }
         if (swap_card != null) {
             for (int i = 0; i < cards.length; i++) {
                 if (cards[i] == swap_card) {
-                    cards[i] = App.discarded_cards.pop();
+                    if (!swap_from_stock) {
+                        cards[i] = App.discarded_cards.pop();
+                    } else {
+                        cards[i] = App.stock_cards.pop();
+                    }
+                    
                     App.discarded_cards.push(swap_card);
                     break;
                 }
