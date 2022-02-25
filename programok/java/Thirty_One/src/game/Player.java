@@ -3,6 +3,8 @@ package game;
 import java.util.Arrays;
 import java.util.Random;
 
+
+
 // import game.App;
 
 public class Player {
@@ -293,30 +295,29 @@ public class Player {
     public void swap() {
         this.Dominant = getDominantCardType();
 
-        Card card_to_swap;
+        // Card card_to_swap;
         boolean swapped = false;
         if (App.discarded_cards.size() > 0) {
-            card_to_swap = decideWhichCardToSwap(App.discarded_cards.peek());
-            if (card_to_swap != null) {
-                swapped = true;
-                int index = getIndexByCard(card_to_swap);
+            int index = getIndexByCard(decideWhichCardToSwap(App.discarded_cards.peek()));
+            swapped = true;
+            if (index != -1) {
                 System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[index]);
                 Card temp = this.cards[index];
                 this.cards[index] = App.discarded_cards.pop();
                 App.discarded_cards.push(temp);
             }
+            
         }
 
         if (!swapped) {
             if (App.stock_cards.size() > 0) {
-                card_to_swap = decideWhichCardToSwap(App.stock_cards.peek());
-                if (card_to_swap != null) {
-                    int index = getIndexByCard(card_to_swap);
+                int index = getIndexByCard(decideWhichCardToSwap(App.discarded_cards.peek()));
+                if (index != -1) {
                     System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[index]);
                     Card temp = this.cards[index];
                     this.cards[index] = App.stock_cards.pop();
                     App.discarded_cards.push(temp);
-                }   
+                }        
             }
         }
 
@@ -334,8 +335,8 @@ public class Player {
         double knock_chance;
         int div;
 
-        if (App.getRoundCounter() < 3 && App.getRoundCounter() >= 1) {
-            div = App.getRoundCounter() + 1;
+        if (App.getCycleCounter() < 3 && App.getCycleCounter() >= 1) {
+            div = App.getCycleCounter() + 1;
         } else {
             div = 4;
         }

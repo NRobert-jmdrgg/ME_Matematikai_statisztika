@@ -68,6 +68,7 @@ public class App {
     public static Stack<Card> discarded_cards = new Stack<>();
 
     private static int roundCounter = 0;
+    private static int cycleCounter;
     public static void main(String[] args) {
         
         
@@ -101,9 +102,12 @@ public class App {
 
             int knocker = -1;
             boolean already_knocked = false;
+            cycleCounter = 0;
             while (!already_knocked) {
+                cycleCounter++;
+                System.out.println("Cycle : " + cycleCounter);
                 for (int i = 0; i < players.size(); i++) {
-                
+                    
                     // System.out.println(players.get(i));
                     // System.out.println(players.get(i).getLives());
                     if (!already_knocked) {
@@ -160,6 +164,7 @@ public class App {
             System.out.println("Eldobott kártyák: " + discarded_cards);
             
             discarded_cards.clear();
+            stock_cards.clear();
         }
         
         System.out.println("The winner is : ");
@@ -206,6 +211,10 @@ public class App {
         for (int i = 0; i < players.size(); i++) {
             players.get(i).setKnock(false);
         }
+    }
+
+    public static int getCycleCounter() {
+        return cycleCounter;
     }
 
 }
