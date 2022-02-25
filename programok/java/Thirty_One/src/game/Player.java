@@ -17,7 +17,7 @@ public class Player {
         this.name = name;
         // this.cards = cards;
         this.lives = lives;
-        // this.Dominant = this.getDominantCardType();
+        //this.Dominant = this.getDominantCardType();
         // this.numberOfDominantCards = this.countDominantCards();
         this.knocked = false;
     }
@@ -36,6 +36,7 @@ public class Player {
 
     public void setCards(Card[] cards) {
         this.cards = cards;
+        this.Dominant = this.getDominantCardType();
     }
 
     public int getLives() {
@@ -161,16 +162,16 @@ public class Player {
         
         this.numberOfDominantCards = this.countDominantCards();
 
-        System.out.println("Number of dominant cards: " + this.getNumberOfDominantCards());
+        // System.out.println("Number of dominant cards: " + this.getNumberOfDominantCards());
 
         switch (this.getNumberOfDominantCards()) {
             case 0:
                 // megnézzük, hogy van-e ilyen típusú kártya, ha van elmentjuk az indexet
                 int tindex = -1;
-                System.out.println(new_card.getSuit());
+                // System.out.println(new_card.getSuit());
                 for (int i = 0; i < cards.length; i++) {
                     if (cards[i].getSuit().equals(new_card.getSuit())) {
-                        System.out.println(cards[i].getSuit());
+                        // System.out.println(cards[i].getSuit());
                         tindex = i;
                         break; //csak 1 ilyen kártya van
                     }
@@ -178,11 +179,13 @@ public class Player {
                 
                 // ha nem találtunk ilyen típusút, akkor vesszük a legkissebbet cserére
                 if (tindex == -1) {
-                    System.out.println("Tindex. "+tindex);
-                    card_to_swap = this.getMinCard();
+                    // System.out.println("Tindex. "+tindex);
+                    if (this.getMinCard().getValue() < new_card.getValue()) {
+                        card_to_swap = min_card;
+                    }
                 } else { // ha találtunk ilyen kártyát
                     int sum_of_tcards = cards[tindex].getValue() + new_card.getValue();
-                    System.out.println("Tvalue:" + tindex);
+                    // System.out.println("Tvalue:" + tindex);
                     switch (tindex) {
                         case 0:
                             min_card = cardMin(cards[1], cards[2]);
@@ -197,8 +200,8 @@ public class Player {
                             }
                             break;
                         case 2:
-                            System.out.println(cards[0]);
-                            System.out.println(cards[1]);
+                            // System.out.println(cards[0]);
+                            // System.out.println(cards[1]);
                             min_card = cardMin(cards[0], cards[1]);
                             if (min_card.getValue() < sum_of_tcards) {
                                 card_to_swap = min_card;
@@ -207,7 +210,7 @@ public class Player {
                         default:
                             break;
                     }
-                    System.out.println("Min card: " + min_card);
+                    // System.out.println("Min card: " + min_card);
                 }
                 break;
             case 2:
@@ -261,13 +264,15 @@ public class Player {
                 }
                 break;
             case 3:
-                System.out.println("Dominant type: " + this.getDominant());
+                // System.out.println("Dominant type: " + this.getDominant());
                 if (!new_card.getSuit().equals(this.getDominant())) {
                     if (new_card.getValue() > this.getHandValue()) {
                         card_to_swap = this.getMinCard();
                     } 
                 } else {
-                    card_to_swap = this.getMinCard();
+                    if (this.getMinCard().getValue() < new_card.getValue()) {
+                        card_to_swap = min_card;
+                    }
                 }
                 break;
         }
@@ -277,10 +282,11 @@ public class Player {
 
     public void swap() {
         this.Dominant = getDominantCardType();
+
         Card swap_card = this.decideToSwap(App.discarded_cards.peek());
         boolean swap_from_stock = false;
         if (swap_card == null && App.stock_cards.size() > 0) {
-            System.out.println("Stock card: " + App.stock_cards.peek());
+            // System.out.println("Stock card: " + App.stock_cards.peek());
             swap_card = this.decideToSwap(App.stock_cards.peek());
             if (swap_card == null) {
                 App.discarded_cards.push(App.stock_cards.pop());
@@ -291,8 +297,10 @@ public class Player {
             for (int i = 0; i < cards.length; i++) {
                 if (cards[i] == swap_card) {
                     if (!swap_from_stock) {
+                        System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[i]);
                         cards[i] = App.discarded_cards.pop();
                     } else {
+                        System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[i]);
                         cards[i] = App.stock_cards.pop();
                     }
                     
@@ -301,6 +309,8 @@ public class Player {
                 }
             }            
         }
+
+        this.Dominant = getDominantCardType();
     }
 
     public boolean decideToKnock() {
@@ -326,12 +336,12 @@ public class Player {
             knock_chance = ( this.getHandValue() / 31.0 );
         }
 
-        System.out.println("knock chance:" + knock_chance);
+        // System.out.println("knock chance:" + knock_chance);
 
         Random rand = new Random();
         float f = rand.nextFloat();
 
-        System.out.println("Random: " + f);
+        // System.out.println("Random: " + f);
 
         if (f < knock_chance) {
             this.setKnock(true);

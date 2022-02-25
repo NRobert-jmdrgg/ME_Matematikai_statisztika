@@ -86,7 +86,7 @@ public class App {
             
             // első felfordított lap
             if (discarded_cards.size() == 0) {
-                discarded_cards.add(stock_cards.pop());
+                discarded_cards.push(stock_cards.pop());
             }
             // kapnak 3 kártyát
             for (int index = 0; index < players.size(); index++) {
@@ -99,59 +99,57 @@ public class App {
             int knocker = -1;
             for (int i = 0; i < players.size(); i++) {
                 
-                System.out.println(players.get(i));
-                System.out.println(players.get(i).getLives());
+                // System.out.println(players.get(i));
+                // System.out.println(players.get(i).getLives());
                  
                 if (players.get(i).decideToKnock()) {
-                    System.out.println("PLAYER : " + players.get(i).getName() + " Knocked");
+                    // System.out.println("PLAYER : " + players.get(i).getName() + " Knocked");
                     knocker = i;
                     for (int j = 0; j < players.size(); j++) {
                         if (j != knocker) {
-                            System.out.println(players.get(j));
-                            System.out.println(players.get(j).getLives());
+                            // System.out.println(players.get(j));
+                            // System.out.println(players.get(j).getLives());
                             if (players.get(j).getLives() > 0) {
-                                players.get(j).swap();;
+                                System.out.println(players.get(j).getSummary());
+                                players.get(j).swap();
+                                System.out.println(players.get(j).getSummary());
                             }
                         }
                     }
                 } else {
                     if (players.get(i).getLives() > 0) {
+                        System.out.println(players.get(i).getSummary());
                         players.get(i).swap();
+                        System.out.println(players.get(i).getSummary());
                     }
                 }
 
-                if (players.get(i).getLives() == 0) {
-                    // players.get(i).discardAllCards();
-                    players.remove(i);
+                for (int j = 0; j < players.size(); j++) {
+                    if (players.get(j).getLives() <= 0) {
+                        // players.get(i).discardAllCards();
+                        players.remove(j);
+                    }    
                 }
-
+                
             }
             if (players.size() > 1) {
                 App.punishLosers(players);    
             }
             
             App.resetKnocks(players);
-            
+        
+            // System.out.println("Summary");
+            // for (Player player : players) {
+            //     System.out.println(player.getSummary());
+            // }
 
-            System.out.println("Summary");
-            for (Player player : players) {
-                System.out.println(player.getSummary());
-            }
-
-            System.out.println("Eldobott kártyák: " + discarded_cards);
+            // System.out.println("Eldobott kártyák: " + discarded_cards);
             
             discarded_cards.clear();
         }
         
-
         System.out.println("The winner is : ");
-        for (Player player : players) {
-            System.out.println(player);
-            System.out.println(player.getLives());
-        }
-
-
-        
+        System.out.println(players.get(0).getSummary());         
     }
 
     private static Card[] getThreeCardsFromStock() {
