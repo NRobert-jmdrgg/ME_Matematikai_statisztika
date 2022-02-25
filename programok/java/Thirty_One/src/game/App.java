@@ -68,8 +68,6 @@ public class App {
     public static Stack<Card> discarded_cards = new Stack<>();
 
     private static int roundCounter = 0;
-    
-
     public static void main(String[] args) {
         
         
@@ -79,7 +77,12 @@ public class App {
         players.add(new Player("B", 5));
         players.add(new Player("C", 5));
         players.add(new Player("D", 5));
+        // players.add(new Player("E", 5));
+        // players.add(new Player("F", 5));
+        // players.add(new Player("G", 5));
         
+        
+
         while (players.size() > 1) {
             stock_cards.addAll(Arrays.asList(cards));
             Collections.shuffle(stock_cards);
@@ -97,53 +100,64 @@ public class App {
             System.out.println("===== ROUND : " + roundCounter + " =====");
 
             int knocker = -1;
-            for (int i = 0; i < players.size(); i++) {
+            boolean already_knocked = false;
+            while (!already_knocked) {
+                for (int i = 0; i < players.size(); i++) {
                 
-                // System.out.println(players.get(i));
-                // System.out.println(players.get(i).getLives());
-                 
-                if (players.get(i).decideToKnock()) {
-                    // System.out.println("PLAYER : " + players.get(i).getName() + " Knocked");
-                    knocker = i;
-                    for (int j = 0; j < players.size(); j++) {
-                        if (j != knocker) {
-                            // System.out.println(players.get(j));
-                            // System.out.println(players.get(j).getLives());
-                            if (players.get(j).getLives() > 0) {
-                                System.out.println(players.get(j).getSummary());
-                                players.get(j).swap();
-                                System.out.println(players.get(j).getSummary());
+                    // System.out.println(players.get(i));
+                    // System.out.println(players.get(i).getLives());
+                    if (!already_knocked) {
+                        if (players.get(i).decideToKnock()) {
+                            already_knocked = true;
+                            System.out.println("!!!!!!!!!!!!!!!!! PLAYER : " + players.get(i).getName() + " Knocked with: " + Arrays.toString(players.get(i).getCards()) + " Value: " + players.get(i).getHandValue());
+                            knocker = i;
+                            for (int j = 0; j < players.size(); j++) {
+                                if (j != knocker) {
+                                    // System.out.println(players.get(j));
+                                    // System.out.println(players.get(j).getLives());
+                                    if (players.get(j).getLives() > 0) {
+                                        System.out.println(players.get(j).getSummary());
+                                        players.get(j).swap();
+                                        System.out.println(players.get(j).getSummary());
+                                    }
+                                }
+                            }
+                        } else {
+                            if (players.get(i).getLives() > 0) {
+                                System.out.println(players.get(i).getSummary());
+                                players.get(i).swap();
+                                System.out.println(players.get(i).getSummary());
                             }
                         }
                     }
-                } else {
-                    if (players.get(i).getLives() > 0) {
-                        System.out.println(players.get(i).getSummary());
-                        players.get(i).swap();
-                        System.out.println(players.get(i).getSummary());
-                    }
+                           
                 }
-
-                for (int j = 0; j < players.size(); j++) {
-                    if (players.get(j).getLives() <= 0) {
-                        // players.get(i).discardAllCards();
-                        players.remove(j);
-                    }    
-                }
-                
             }
+            
             if (players.size() > 1) {
                 App.punishLosers(players);    
             }
             
-            App.resetKnocks(players);
-        
-            // System.out.println("Summary");
-            // for (Player player : players) {
-            //     System.out.println(player.getSummary());
-            // }
+            for (int j = 0; j < players.size(); j++) {
+                if (players.get(j).getLives() <= 0) {
+                    // players.get(i).discardAllCards();
+                    System.out.println("Player: " + players.get(j).getName() + " got eliminated with " + players.get(j).getHandValue());
+                    players.remove(j);
+                }    
+            }
 
-            // System.out.println("Eldobott kártyák: " + discarded_cards);
+            App.resetKnocks(players);
+
+            System.out.println("==== Round " + roundCounter + " end ====");
+        
+            System.out.println("====Rount " + roundCounter +" Summary====");
+            for (Player player : players) {
+                System.out.println(player.getSummary());
+            }
+
+            System.out.println("Maradék játékosok: " + players.size());
+
+            System.out.println("Eldobott kártyák: " + discarded_cards);
             
             discarded_cards.clear();
         }

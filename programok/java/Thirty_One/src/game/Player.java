@@ -156,10 +156,10 @@ public class Player {
         }
     }
 
-    private Card decideToSwap(Card new_card) {
+    private Card decideWhichCardToSwap(Card new_card) {
         Card card_to_swap = null;
         Card min_card = null;
-        
+            
         this.numberOfDominantCards = this.countDominantCards();
 
         // System.out.println("Number of dominant cards: " + this.getNumberOfDominantCards());
@@ -280,34 +280,44 @@ public class Player {
         return card_to_swap;
     }
 
+    private int getIndexByCard(Card card) {
+        for (int i = 0; i < cards.length; i++) {
+            if (cards[i].equals(card)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     public void swap() {
         this.Dominant = getDominantCardType();
 
-        Card swap_card = this.decideToSwap(App.discarded_cards.peek());
-        boolean swap_from_stock = false;
-        if (swap_card == null && App.stock_cards.size() > 0) {
-            // System.out.println("Stock card: " + App.stock_cards.peek());
-            swap_card = this.decideToSwap(App.stock_cards.peek());
-            if (swap_card == null) {
-                App.discarded_cards.push(App.stock_cards.pop());
+        Card card_to_swap;
+        boolean swapped = false;
+        if (App.discarded_cards.size() > 0) {
+            card_to_swap = decideWhichCardToSwap(App.discarded_cards.peek());
+            if (card_to_swap != null) {
+                swapped = true;
+                int index = getIndexByCard(card_to_swap);
+                System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[index]);
+                Card temp = this.cards[index];
+                this.cards[index] = App.discarded_cards.pop();
+                App.discarded_cards.push(temp);
             }
-            swap_from_stock = true;
         }
-        if (swap_card != null) {
-            for (int i = 0; i < cards.length; i++) {
-                if (cards[i] == swap_card) {
-                    if (!swap_from_stock) {
-                        System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[i]);
-                        cards[i] = App.discarded_cards.pop();
-                    } else {
-                        System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[i]);
-                        cards[i] = App.stock_cards.pop();
-                    }
-                    
-                    App.discarded_cards.push(swap_card);
-                    break;
-                }
-            }            
+
+        if (!swapped) {
+            if (App.stock_cards.size() > 0) {
+                card_to_swap = decideWhichCardToSwap(App.stock_cards.peek());
+                if (card_to_swap != null) {
+                    int index = getIndexByCard(card_to_swap);
+                    System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[index]);
+                    Card temp = this.cards[index];
+                    this.cards[index] = App.stock_cards.pop();
+                    App.discarded_cards.push(temp);
+                }   
+            }
         }
 
         this.Dominant = getDominantCardType();
