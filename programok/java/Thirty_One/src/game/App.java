@@ -1,8 +1,9 @@
 package game;
 
 import java.util.Stack;
-
-
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,6 +71,8 @@ public class App {
     private static int roundCounter = 0;
     private static int cycleCounter;
     public static void main(String[] args) {
+
+        getFileReady("hand.csv", "Jatekos, Kartya1, Kartya2, Kartya3, osszeg");
         
         
         ArrayList<Player> players = new ArrayList<>();
@@ -78,12 +81,10 @@ public class App {
         players.add(new Player("B", 5));
         players.add(new Player("C", 5));
         players.add(new Player("D", 5));
-        // players.add(new Player("E", 5));
-        // players.add(new Player("F", 5));
-        // players.add(new Player("G", 5));
+        players.add(new Player("E", 5));
+        players.add(new Player("F", 5));
+        players.add(new Player("G", 5));
         
-        
-
         while (players.size() > 1) {
             stock_cards.addAll(Arrays.asList(cards));
             Collections.shuffle(stock_cards);
@@ -98,39 +99,40 @@ public class App {
             } 
             
             roundCounter++;
-            System.out.println("===== ROUND : " + roundCounter + " =====");
+            // System.out.println("===== ROUND : " + roundCounter + " =====");
 
             int knocker = -1;
             boolean already_knocked = false;
             cycleCounter = 0;
             while (!already_knocked) {
                 cycleCounter++;
-                System.out.println("Cycle : " + cycleCounter);
+                
+                // System.out.println("Cycle : " + cycleCounter);
                 for (int i = 0; i < players.size(); i++) {
-                    
+                    players.get(i).writeHandToFile();
                     // System.out.println(players.get(i));
                     // System.out.println(players.get(i).getLives());
                     if (!already_knocked) {
                         if (players.get(i).decideToKnock()) {
                             already_knocked = true;
-                            System.out.println("!!!!!!!!!!!!!!!!! PLAYER : " + players.get(i).getName() + " Knocked with: " + Arrays.toString(players.get(i).getCards()) + " Value: " + players.get(i).getHandValue());
+                            // System.out.println("!!!!!!!!!!!!!!!!! PLAYER : " + players.get(i).getName() + " Knocked with: " + Arrays.toString(players.get(i).getCards()) + " Value: " + players.get(i).getHandValue());
                             knocker = i;
                             for (int j = 0; j < players.size(); j++) {
                                 if (j != knocker) {
                                     // System.out.println(players.get(j));
                                     // System.out.println(players.get(j).getLives());
                                     if (players.get(j).getLives() > 0) {
-                                        System.out.println(players.get(j).getSummary());
+                                        // System.out.println(players.get(j).getSummary());
                                         players.get(j).swap();
-                                        System.out.println(players.get(j).getSummary());
+                                        // System.out.println(players.get(j).getSummary());
                                     }
                                 }
                             }
                         } else {
                             if (players.get(i).getLives() > 0) {
-                                System.out.println(players.get(i).getSummary());
+                                // System.out.println(players.get(i).getSummary());
                                 players.get(i).swap();
-                                System.out.println(players.get(i).getSummary());
+                                // System.out.println(players.get(i).getSummary());
                             }
                         }
                     }
@@ -145,30 +147,36 @@ public class App {
             for (int j = 0; j < players.size(); j++) {
                 if (players.get(j).getLives() <= 0) {
                     // players.get(i).discardAllCards();
-                    System.out.println("Player: " + players.get(j).getName() + " got eliminated with " + players.get(j).getHandValue());
+                    // System.out.println("Player: " + players.get(j).getName() + " got eliminated with " + players.get(j).getHandValue());
                     players.remove(j);
                 }    
             }
 
             App.resetKnocks(players);
 
-            System.out.println("==== Round " + roundCounter + " end ====");
+            // System.out.println("==== Round " + roundCounter + " end ====");
         
-            System.out.println("====Rount " + roundCounter +" Summary====");
-            for (Player player : players) {
-                System.out.println(player.getSummary());
-            }
+            // System.out.println("====Rount " + roundCounter +" Summary====");
+            // for (Player player : players) {
+            //     System.out.println(player.getSummary());
+            // }
 
-            System.out.println("Maradék játékosok: " + players.size());
+            // System.out.println("Maradék játékosok: " + players.size());
 
-            System.out.println("Eldobott kártyák: " + discarded_cards);
+            // System.out.println("Eldobott kártyák: " + discarded_cards);
             
             discarded_cards.clear();
             stock_cards.clear();
         }
         
-        System.out.println("The winner is : ");
-        System.out.println(players.get(0).getSummary());         
+        // System.out.println("The winner is : ");
+        // if (players.get(0).getLives() > 0) {
+        //     System.out.println(players.get(0).getSummary());         
+        // } else {
+        //     System.out.println("Draw");
+        // }
+        
+        Player.writePlayerToFile(players.get(0));    
     }
 
     private static Card[] getThreeCardsFromStock() {
@@ -197,10 +205,14 @@ public class App {
 
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getHandValue() == min) {
-                players.get(i).decreaseLives(1);
+                if (players.get(i).isKnocked()) {
+                    players.get(i).decreaseLives(2);
+                    // System.out.println("<><><><><><>><> " + players.get(i).getName() + " Lost 2 lives"); 
+                } else {
+                    players.get(i).decreaseLives(1);
+                }
             }
         }
-
     }
 
     public static int getRoundCounter() {
@@ -217,4 +229,12 @@ public class App {
         return cycleCounter;
     }
 
+    private static void getFileReady(String filename, String cvs_fieldnames) {
+        File file = new File(filename);
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))) {
+            bw.write(cvs_fieldnames + "\n");
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
 }

@@ -1,10 +1,12 @@
 package game;
 
-public class Card {
+import java.io.Serializable;
+
+public class Card implements Serializable {
     private int value;
     private String suit;
     private String face;
-    private String ID;
+    private transient String ID;
 
     public Card(int value, String suit, String face) {
         this.value = value;
@@ -35,7 +37,7 @@ public class Card {
 
     @Override
     public String toString() {
-        return ID + " "; 
+        return ID; 
     }
 
 

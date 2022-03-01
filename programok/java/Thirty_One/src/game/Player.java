@@ -1,11 +1,10 @@
 package game;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.Random;
-
-
-
-// import game.App;
 
 public class Player {
     private String name;
@@ -16,11 +15,8 @@ public class Player {
     private int numberOfDominantCards;
     
     public Player(String name, int lives) {
-        this.name = name;
-        // this.cards = cards;
+        this.name = name;        
         this.lives = lives;
-        //this.Dominant = this.getDominantCardType();
-        // this.numberOfDominantCards = this.countDominantCards();
         this.knocked = false;
     }
 
@@ -46,7 +42,7 @@ public class Player {
     }
 
     public void decreaseLives(int lives) {
-        this.lives--;
+        this.lives -= lives;
     }
 
     public boolean isKnocked() {
@@ -261,7 +257,6 @@ public class Player {
                             }
                             break;
                         }
-                        
                     }
                 }
                 break;
@@ -299,9 +294,9 @@ public class Player {
         boolean swapped = false;
         if (App.discarded_cards.size() > 0) {
             int index = getIndexByCard(decideWhichCardToSwap(App.discarded_cards.peek()));
-            swapped = true;
             if (index != -1) {
-                System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[index]);
+                swapped = true;
+                // System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[index]);
                 Card temp = this.cards[index];
                 this.cards[index] = App.discarded_cards.pop();
                 App.discarded_cards.push(temp);
@@ -311,9 +306,9 @@ public class Player {
 
         if (!swapped) {
             if (App.stock_cards.size() > 0) {
-                int index = getIndexByCard(decideWhichCardToSwap(App.discarded_cards.peek()));
+                int index = getIndexByCard(decideWhichCardToSwap(App.stock_cards.peek()));
                 if (index != -1) {
-                    System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[index]);
+                    // System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[index]);
                     Card temp = this.cards[index];
                     this.cards[index] = App.stock_cards.pop();
                     App.discarded_cards.push(temp);
@@ -370,5 +365,25 @@ public class Player {
         return "Name: " + this.name + " Cards: " + Arrays.toString(this.cards) + " hand value: " + this.getHandValue() + " Lives: " + this.lives;
     }
 
-    
+    private String cardsToString() {
+        return cards[0].toString() + ", " + cards[1].toString() + ", " + cards[2].toString();
+    }
+
+    public static void writePlayerToFile(Player player) {
+        File file = new File("test.csv");
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+            bw.write(player.getSummary());
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
+
+    public void writeHandToFile() {
+        File file = new File("hand.csv");
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))) {
+            bw.write(this.getName() + ", " + this.cardsToString() + ", " + this.getHandValue() + "\n");
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
 }
