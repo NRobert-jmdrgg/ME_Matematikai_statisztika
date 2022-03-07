@@ -11,13 +11,17 @@ public class Player {
     private Card[] cards;
     private int lives;
     private boolean knocked;
+    private boolean still_in_game;
     private String Dominant;
     private int numberOfDominantCards;
+    private int handValuePerRound;
     
     public Player(String name, int lives) {
         this.name = name;        
         this.lives = lives;
         this.knocked = false;
+        this.still_in_game = true;
+        this.handValuePerRound = 0;
     }
 
     public String getName() {
@@ -288,7 +292,7 @@ public class Player {
     }
 
     public void swap() {
-        this.Dominant = getDominantCardType();
+        // this.Dominant = getDominantCardType();
 
         // Card card_to_swap;
         boolean swapped = false;
@@ -296,8 +300,9 @@ public class Player {
             int index = getIndexByCard(decideWhichCardToSwap(App.discarded_cards.peek()));
             if (index != -1) {
                 swapped = true;
-                // System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[index]);
+                System.out.println("Eldobottból:" + App.discarded_cards.peek() + " -> " + cards[index]);
                 Card temp = this.cards[index];
+                App.swapped_cards.add(temp);
                 this.cards[index] = App.discarded_cards.pop();
                 App.discarded_cards.push(temp);
             }
@@ -308,8 +313,9 @@ public class Player {
             if (App.stock_cards.size() > 0) {
                 int index = getIndexByCard(decideWhichCardToSwap(App.stock_cards.peek()));
                 if (index != -1) {
-                    // System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[index]);
+                    System.out.println("stockból:" + App.stock_cards.peek() + " -> " + cards[index]);
                     Card temp = this.cards[index];
+                    App.swapped_cards.add(temp);
                     this.cards[index] = App.stock_cards.pop();
                     App.discarded_cards.push(temp);
                 }        
@@ -372,7 +378,7 @@ public class Player {
     public static void writePlayerToFile(Player player) {
         File file = new File("test.csv");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-            bw.write(player.getSummary());
+            bw.write(player.getName() + ", " + player.getLives());
         } catch (Exception e) {
             e.getMessage();
         }
@@ -385,5 +391,17 @@ public class Player {
         } catch (Exception e) {
             e.getMessage();
         }
+    }
+
+    public void setHandValuePerRound() {
+        this.handValuePerRound += this.getHandValue();
+    }
+
+    public void setStill_in_game(boolean still_in_game) {
+        this.still_in_game = still_in_game;
+    }
+
+    public boolean still_in_game() {
+        return this.still_in_game;
     }
 }

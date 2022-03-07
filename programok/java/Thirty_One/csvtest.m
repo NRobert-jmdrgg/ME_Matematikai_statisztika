@@ -1,4 +1,3 @@
-function csvtest(filename)
-    M = csvread(filename);
-    M
+function M = csvtest(filename)
+    M = readtable(filename);
 end
