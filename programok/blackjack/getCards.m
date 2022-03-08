@@ -1,14 +1,8 @@
-function cards = getCards()
-    i = 1;
-    k = 1;
-    cards = zeros(52);
+function cards = getCards(number_of_decks)
+    x = [2 3 4 5 6 7 8 9 10 10 10 10 11 2 3 4 5 6 7 8 9 10 10 10 10 11 2 3 4 5 6 7 8 9 10 10 10 10 11 2 3 4 5 6 7 8 9 10 10 10 10 11];
+    cards = [];
     
-    while k <= 52
-        cards(k) = i;
-        cards(k + 1) = i;
-        cards(k + 2) = i;
-        cards(k + 3) = i;
-        k = k + 4;
-        i = i + 1;
+    for i = 1 : number_of_decks
+        cards = horzcat(cards, x);
     end
 end
