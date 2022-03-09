@@ -144,12 +144,15 @@ function Blackjack(number_of_players, number_of_decks)
     
     % plot
     averageChipsAllGame = mean([averageChipsPerRound]);
+    hold on;
+    % set(gca, 'Xtick', 0:1:round_counter, 'Ytick', 0:5:10000)
     for i = 1 : number_of_players
-        hold on;
         plot(data(i).chipsPerRound)
     end 
     plot(averageChipsPerRound)
     line([0 round_counter], [averageChipsAllGame averageChipsAllGame])
+    legend({data(:).name, 'Atlag / kor', 'Teljes atlag'}, 'Location', 'northeast');
+    
     
     % fprintf('Jatek vege: Elemzes:\n');
     % for i = 1 : number_of_players
