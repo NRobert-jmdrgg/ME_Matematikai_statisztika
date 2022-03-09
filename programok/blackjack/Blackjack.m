@@ -25,15 +25,15 @@ function Blackjack(number_of_players, number_of_decks)
         players(i).bet = 0;
     end
 
-    deck__ = getCards(number_of_decks);
-
+    
+    deck = getCards(number_of_decks);
+    deck = deck(randperm(length(deck)));
     bet_amounts = [5, 25, 50, 100, 500];
     number_of_players_still_in_game = number_of_players;
     % main loop
     while number_of_players_still_in_game > 0
         % kártyák elokeszitese
-        deck = deck__;
-        deck = deck(randperm(length(deck)));
+        
     
         dealerHand = getCardsFromDeck(2);
         
@@ -51,8 +51,8 @@ function Blackjack(number_of_players, number_of_decks)
 
                 % minden játékos kap két lapot
                 players(i).hand = getCardsFromDeck(2);
-                fprintf('%c keze:\n', players(i).name);
-                players(i).hand
+                % fprintf('%c keze:\n', players(i).name);
+                % players(i).hand
 
                 % dontse el, hogy a játékos hit / stand / doube 
                 hv = getHandValue(players(i).hand);
@@ -126,6 +126,10 @@ function Blackjack(number_of_players, number_of_decks)
 
     % adj n darab kártyát a pakliból
     function cards = getCardsFromDeck(n)
+        if length(deck) < 2
+            deck = getCards(number_of_decks);
+        end
+
         cards = zeros(n, 1);
         for j = 1 : n
             cards(j) = deck(1);
