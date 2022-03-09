@@ -36,9 +36,10 @@ function Blackjack(number_of_players, number_of_decks)
         deck = deck(randperm(length(deck)));
     
         dealerHand = getCardsFromDeck(2);
-        % minden jatekos fogad
+        
         for i = 1 : number_of_players
             if players(i).active == true
+                % minden jatekos fogad
                 biggest_bet_value = getBiggestPossibleBet(bet_amounts, players(i).chips);
             
                 if biggest_bet_value > 0
@@ -47,24 +48,13 @@ function Blackjack(number_of_players, number_of_decks)
                     players(i).chips = players(i).chips - b;
                 end
                 fprintf('%c fogadott %d maradt neki %d\n', players(i).name, players(i).bet, players(i).chips);
-            end
-            
-        end
 
-        % minden játékos kap két lapot
-        for i = 1 : number_of_players
-            if players(i).active == true
+                % minden játékos kap két lapot
                 players(i).hand = getCardsFromDeck(2);
                 fprintf('%c keze:\n', players(i).name);
                 players(i).hand
-            end
-        end
 
-
-
-        % dontse el, hogy a játékos hit / stand / doube 
-        for i = 1 : number_of_players
-            if players(i).active == true
+                % dontse el, hogy a játékos hit / stand / doube 
                 hv = getHandValue(players(i).hand);
                 if hv <= 10                                                     % ha a kezunk erteke 10 vagy kissebb, akkor húzunk egy új kártyát
                     players(i).hand(length(players(i).hand) + 1) = getCardsFromDeck(1);
@@ -73,25 +63,33 @@ function Blackjack(number_of_players, number_of_decks)
                     players(i).chips = players(i).chips - players(i).bet;
                     players(i).bet = players(i).bet * 2;
                     % fprintf('%c duplazott: %d maradt neki %d kartyai\n', players(i).name, players(i).bet, players(i).chips);
-                    % players(i).hand
-                end    
+                    % players(i).hand'
+                end
             end
+            % if players(i).active == true
+            %     fprintf('%c ertek: %d keze:\n', players(i).name, getHandValue(players(i).hand));
+            %     players(i).hand'
+            % end
         end
 
         % ha minden jatekos keszen all, akkor a dealer huz uj kartyakat, ameddig a keze 17 nem lesz
         while sum(dealerHand) < 17
             dealerHand(length(dealerHand) + 1) = getCardsFromDeck(1);
         end
-
-        % nézzük meg, hogy a dealer keze nagyobb-e, mint 21
-        dhv = sum(dealerHand);
+        
+        % megnezzuk kinek lett 21 a keze
         for i = 1 : number_of_players
             hv = getHandValue(players(i).hand);
-            if hv == 21
+            if hv == 21 
                 players(i).chips = players(i).chips + ceil(players(i).bet * 2.5);
                 players(i).alreadyPaid = true;
             end
         end
+        
+        % kifizetes
+        dhv = sum(dealerHand);
+        % fprintf('dealer ertek: %d keze:', dhv);
+        % dealerHand'
 
         if dhv > 21
             for i = 1 : number_of_players
@@ -102,13 +100,11 @@ function Blackjack(number_of_players, number_of_decks)
         else
             for i = 1 : number_of_players
                 hv = getHandValue(players(i).hand);
-                if players(i).active == true && players(i).alreadyPaid == false && hv > dhv
+                if players(i).alreadyPaid == false && hv > dhv
                     players(i).chips = players(i).chips + ceil(players(i).bet * 2);
                 end
             end
         end
-
-        players([1:number_of_players]).alreadyPaid = false;
 
         % nezzuk meg, hogy melyik jatekosoknak van meg penze.
         for i = 1 : number_of_players
@@ -119,13 +115,14 @@ function Blackjack(number_of_players, number_of_decks)
                 players(i).hand = [];
                 players(i).active = false;
             end
+            players(i).alreadyPaid = false;
         end
     end
 
-    fprintf('Jatek vege: Elemzes:\n');
-    for i = 1 : number_of_players
-        fprintf('nev: %c maradek penz: %d\n', players(i).name, players(i).chips);
-    end
+    % fprintf('Jatek vege: Elemzes:\n');
+    % for i = 1 : number_of_players
+    %     fprintf('nev: %c maradek penz: %d\n', players(i).name, players(i).chips);
+    % end
 
     % adj n darab kártyát a pakliból
     function cards = getCardsFromDeck(n)
@@ -159,6 +156,5 @@ function Blackjack(number_of_players, number_of_decks)
                 break;
             end
         end
-
     end
 end
