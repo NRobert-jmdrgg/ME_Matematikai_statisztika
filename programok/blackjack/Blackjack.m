@@ -73,7 +73,7 @@ function Blackjack(number_of_players, number_of_decks)
         end
 
         % ha minden jatekos keszen all, akkor a dealer huz uj kartyakat, ameddig a keze 17 nem lesz
-        while sum(dealerHand) < 17
+        while getHandValue(dealerHand) < 17
             dealerHand(length(dealerHand) + 1) = getCardsFromDeck(1);
         end
         
@@ -87,7 +87,7 @@ function Blackjack(number_of_players, number_of_decks)
         end
         
         % kifizetes
-        dhv = sum(dealerHand);
+        dhv = getHandValue(dealerHand);
         % fprintf('dealer ertek: %d keze:', dhv);
         % dealerHand'
 
