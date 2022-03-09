@@ -79,11 +79,13 @@ function Blackjack(number_of_players, number_of_decks)
         
         % megnezzuk kinek lett 21 a keze
         for i = 1 : number_of_players
+            
             hv = getHandValue(players(i).hand);
             if hv == 21 
                 players(i).chips = players(i).chips + ceil(players(i).bet * 2.5);
                 players(i).alreadyPaid = true;
             end
+            
         end
         
         % kifizetes
@@ -130,7 +132,7 @@ function Blackjack(number_of_players, number_of_decks)
             deck = getCards(number_of_decks);
         end
 
-        cards = zeros(n, 1);
+        cards = struct('value', 0, 'suit', '');
         for j = 1 : n
             cards(j) = deck(1);
             deck(1) = [];
@@ -140,11 +142,14 @@ function Blackjack(number_of_players, number_of_decks)
 
     % a lapok értéke
     function value = getHandValue(cards)
-        value = sum(cards);
-        if value > 21
-            for card = cards
-                if card == 11
-                    value = value - 10;
+        value = 0;
+        if ~isempty(cards)
+            value = sum([cards.value]);
+            if value > 21
+                for card = cards
+                    if card.value == 11
+                        value = value - 10;
+                    end
                 end
             end
         end
