@@ -9,7 +9,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
 
     %%%% Test
     r = 1;
-    while r <= number_of_rounds && money >= bet_amount
+    while ((r <= number_of_rounds) && (money >= bet_amount))
         fprintf('kartyak szama: %d\n', length(deck));
         number_of_hands = 1;
         % dealer kap 2 kártyát
@@ -29,10 +29,6 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
         end
 
         fprintf('jatekos keze:\n');
-        % endturn = false;
-        % while ~endturn
-
-        % end
         k = 1;
         while k <= number_of_hands
             % megnezzuk hogy a játékos k-adik keze páros pl 3-3 lapok
@@ -43,6 +39,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                     bet(number_of_hands + 1) = bet_amount;
                     money = money - bet_amount;
                     hand{number_of_hands + 1}(1).value = hand{k}(2).value;
+                    hand{number_of_hands + 1}(1).name = hand{k}(2).name;
                     hand{number_of_hands + 1}(1).suit = hand{k}(2).suit;
                     hand{number_of_hands + 1}(2) = getCardsFromDeck(1);
                     hand{k}(2) = getCardsFromDeck(1);
@@ -123,7 +120,6 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                 hv = getHandValue(hand{i});
                 fprintf('jatekos %d. kezenek erteke: %d\n', i, hv);
                 if hv > 21
-                    
                     fprintf('jatekos besokalt\n');
                 elseif hv == dhv 
                     fprintf('dontetlen\n');
@@ -135,11 +131,9 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                     money = money + round(bet(i) * 2);
                 elseif hv < dhv
                     fprintf('jatekos vesztett\n');
-                    
                 end
             end
         end
-
         fprintf('maradek penz: %d\n', money);
         r = r + 1;
     end
@@ -235,7 +229,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
             deck = getCards(number_of_decks);
             deck = deck(randperm(length(deck)));
         end
-        cards = struct('value', 0, 'suit', '');
+        cards = struct('value', 0, 'name', '','suit', '');
         for j = 1 : n
             cards(j) = deck(length(deck));
             deck(length(deck)) = [];
