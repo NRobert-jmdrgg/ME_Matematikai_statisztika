@@ -34,10 +34,10 @@ function Blackjack(number_of_decks, money, number_of_rounds, strategy)
     k = 1;
     while k <= number_of_hands
         if checkIfPair(hand{k})
-            if decideToSplit1(dealerHand, hand, k) 
-                hand{i}(1).value = hand{k}(2).value;
-                hand{i}(1).suit = hand{k}(2).suit;
-                hand{i}(2) = getCardsFromDeck(1);
+            if decideToSplit1(dealerHand, hand, k) && number_of_hands < max_number_of_hands
+                hand{number_of_hands + 1}(1).value = hand{k}(2).value;
+                hand{number_of_hands + 1}(1).suit = hand{k}(2).suit;
+                hand{number_of_hands + 1}(2) = getCardsFromDeck(1);
                 hand{k}(2) = getCardsFromDeck(1);
                 number_of_hands = number_of_hands + 1;
                 k = 1;
