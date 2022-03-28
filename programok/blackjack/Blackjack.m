@@ -31,29 +31,40 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
         return;
     end
 
+    % pakli kártya előkészítése
     deck = getCards(number_of_decks);
+    % pakli keverése
     deck = deck(randperm(length(deck)));
-    dealerHand = getCardsFromDeck(2);
-    hand = {[], [], [], []};
-    hand{1} = getCardsFromDeck(2);
     max_number_of_hands = 4;
-    number_of_hands = 1;
+    
 
     %%%% Test
     r = 1;
-    while r <= number_of_rounds
+    while r <= number_of_rounds && money > 0
+        fprintf('kartyak szama: %d\n', length(deck));
+        number_of_hands = 1;
+        % dealer kap 2 kártyát
+        dealerHand = getCardsFromDeck(2);
+        % játékosnak max 4 'keze' lehet.
+        hand = {[], [], [], []};
+        % játékos kap 2 kártyát
+        hand{1} = getCardsFromDeck(2);
+        fprintf('Round %d\n', r);
+        % fogadás tömb
         bet(1) = bet_amount;
         fprintf('money: %d, bet_amount: %d\n', money, bet_amount);
     
-        fprintf('dealer hand:\n');
+        fprintf('dealer keze:\n');
         for i = 1 : 2
             disp(dealerHand(i));
         end
 
-        fprintf('player hand:\n');
+        fprintf('jatekos keze:\n');
         k = 1;
         while k <= number_of_hands
+            % megnezzuk hogy a játékos k-adik keze páros pl 3-3 lapok
             if checkIfPair(hand{k})
+                % split esetén új fogadás és kéz lesz.
                 if decideToSplit1(dealerHand, hand, k) && number_of_hands < max_number_of_hands
                     bet(number_of_hands + 1) = bet_amount;
                     hand{number_of_hands + 1}(1).value = hand{k}(2).value;
@@ -63,10 +74,10 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
                     number_of_hands = number_of_hands + 1;
                     k = 1;
                 elseif decideToHit1(dealerHand, hand, k)
-                    hand{k}(3) = getCardsFromDeck(1);
+                    hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                     k = k + 1;
                 elseif decideToDoubleDown1(dealerHand, hand, k)
-                    hand{k}(3) = getCardsFromDeck(1);
+                    hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                     bet(k) = round(bet(k) * 2);
                     k = k + 1;
                 else
@@ -74,18 +85,18 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
                 end        
             elseif checkIfHasAce(hand{k})
                 if decideToDoubleDown2(dealerHand, hand, k)
-                    hand{k}(3) = getCardsFromDeck(1);
+                    hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                     bet(k) = round(bet(k) * 2);
                 elseif decideToHit2(dealerHand, hand, k)
-                    hand{k}(3) = getCardsFromDeck(1);
+                    hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                 end
                 k = k + 1;
             else
                 if decideToDoubleDown3(dealerHand, hand, k)
-                    hand{k}(3) = getCardsFromDeck(1);
+                    hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                     bet(k) = round(bet(k) * 2);
                 elseif decideToHit3(dealerHand, hand, k)
-                    hand{k}(3) = getCardsFromDeck(1);
+                    hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                 end
                 k = k + 1;
             end
@@ -122,10 +133,10 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
             end
         else 
             for i = 1 : number_of_hands
-                hv = getHandValue(hand{k});
-                fprintf('jatekos kezenek erteke: %d\n', hv);
+                hv = getHandValue(hand{i});
+                fprintf('jatekos %d. kezenek erteke: %d\n', i, hv);
                 if hv > 21
-                    money = round(money - bet(i));
+                    money = money - round(bet(i));
                     fprintf('jatekos besokalt\n');
                 elseif hv == 21
                     fprintf('jatekos blackjack\n');
@@ -135,7 +146,7 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
                     money = money + round(bet(i) * 2);
                 elseif hv < dhv
                     fprintf('jatekos vesztett\n');
-                    money = round(money - bet(i));
+                    money = money - round(bet(i));
                 else
                     fprintf('dontetlen\n');
                 end
@@ -144,6 +155,12 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
 
         fprintf('maradek penz: %d\n', money);
         r = r + 1;
+    end
+
+    if r < number_of_rounds
+        fprintf('elfogyott a penz\n');
+    else
+        fprintf('vege\n');
     end
     
     
@@ -155,7 +172,8 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
          (value_between(8, 9, dealerHand(1).value) && value_between(8, 9, hand{k}(1).value)) || ...
          (dealerHand(1).value == 10 && hand{k}(1).value == 8) || ...
          (value_between(5, 6, dealerHand(1).value) && hand{k}(1).value == 4) || ...
-         (value_between(2, 7, dealerHand(1).value) && value_between(2, 3, hand{k}(1).value)) 
+         (value_between(2, 7, dealerHand(1).value) && value_between(2, 3, hand{k}(1).value)) || ...
+         (dealerHand(1).value == 11 && hand{k}(1).value == 8)
             val = true;
         end
     end
@@ -186,9 +204,7 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
     function val = decideToHit3(dealerHand, hand, k)
         val = false;
         hv = getHandValue(hand{k});
-        if (value_between(12, 16, hv) && value_between(7, 8, dealerHand(1).value)) || ...
-            (value_between(12, 15, hv) && dealerHand(1).value == 9) || ...
-            (value_between(12, 14, hv) && value_between(10, 11, dealerHand(1).value)) || ...
+        if (value_between(12, 16, hv) && value_between(7, 11, dealerHand(1).value)) || ...
             (hv == 12 && value_between(2, 3, dealerHand(1).value)) || ...
             (hv == 10 && value_between(10, 11, dealerHand(1).value)) || ...
             (hv == 9 && dealerHand(1).value == 2) || ...
@@ -254,6 +270,7 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
 
     function cards = getCardsFromDeck(n)
         if length(deck) < 2
+            fprintf('Elfogytak a kartyak uj pakli\n');
             deck = getCards(number_of_decks);
             deck = deck(randperm(length(deck)));
         end
