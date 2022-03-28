@@ -1,178 +1,197 @@
-function Blackjack(number_of_players, number_of_decks)
+function Blackjack(number_of_decks, money, number_of_rounds, strategy)
     % input check
-    if number_of_players > 26 
-        fprintf('Tul sok jatekos\n');
-        return ;
-    elseif number_of_players < 1
-        fprintf('Nem eleg jatekos\n');
-        return ;
-    elseif number_of_decks > 7
+    if number_of_decks > 8
         fprintf('Tul sok kartya\n');
-        return ;
+        return;
     elseif number_of_decks < 1
         fprintf('Tul keves kartya\n');
-        return ;
+        return;
+    end
+    if money < 1
+        fprintf('Tul keves fogadas penz\n');
+        return;
+    end
+    if number_of_rounds < 1
+        fprintf('Tul keves kor\n');
+        return;
     end
 
-    % jatekosok definialasa
-    players = struct([]);
-    names = 'A' : 'Z';
-    for i = 1 : number_of_players
-        players(i).name = names(i);
-        players(i).active = true;
-        players(i).alreadyPaid = false;
-        players(i).chips = 1000;
-        players(i).bet = 0;
-    end
-
-    % adatgyujteshez
-    data = struct([]);
-    for i = 1 : number_of_players
-        data(i).name = names(i);
-        data(i).chipsPerRound = [];
-        data(i).hanValuePerRound = [];
-    end
-    averageChipsPerRound = [];
-    
     deck = getCards(number_of_decks);
     deck = deck(randperm(length(deck)));
-    bet_amounts = [5, 25, 50, 100, 500];
-    number_of_players_still_in_game = number_of_players;
-    % main loop
-    round_counter = 0;
-    while number_of_players_still_in_game > 0
-        round_counter = round_counter + 1;
-        % kártyák elokeszitese  
-        dealerHand = getCardsFromDeck(2);
-        
-        for i = 1 : number_of_players
-            if players(i).active == true
-                % minden jatekos fogad
-                biggest_bet_value = getBiggestPossibleBet(bet_amounts, players(i).chips);
-                
-                if biggest_bet_value > 0
-                    b = randsample(bet_amounts(1:biggest_bet_value), 1);
-                    players(i).bet = b;
-                    players(i).chips = players(i).chips - b;
-                end
-                % fprintf('%c fogadott %d maradt neki %d\n', players(i).name, players(i).bet, players(i).chips);
+    dealerHand = getCardsFromDeck(2);
+    hand = {[], [], [], []};
+    hand{1} = getCardsFromDeck(2);
+    max_number_of_hands = 4;
+    number_of_hands = 1;
+    
+    fprintf('dealer hand:\n');
+    for i = 1 : 2
+        disp(dealerHand(i));
+    end
 
-                % minden játékos kap két lapot
-                players(i).hand = getCardsFromDeck(2);
-                % fprintf('%c keze:\n', players(i).name);
-                % players(i).hand
+    fprintf('player hand:\n');
 
-                % dontse el, hogy a játékos hit / stand / doube 
-                hv = getHandValue(players(i).hand);
-                if hv <= 10                                                     % ha a kezunk erteke 10 vagy kissebb, akkor húzunk egy új kártyát
-                    players(i).hand(length(players(i).hand) + 1) = getCardsFromDeck(1);
-                elseif hv == 11 && players(i).chips > (players(i).bet * 2)      % double down
-                    players(i).hand(length(players(i).hand) + 1) = getCardsFromDeck(1);
-                    players(i).chips = players(i).chips - players(i).bet;
-                    players(i).bet = players(i).bet * 2;
-                    % fprintf('%c duplazott: %d maradt neki %d kartyai\n', players(i).name, players(i).bet, players(i).chips);
-                    % players(i).hand'
-                end
+    k = 1;
+    while k <= number_of_hands
+        if checkIfPair(hand{k})
+            if decideToSplit1(dealerHand, hand, k) 
+                hand{i}(1).value = hand{k}(2).value;
+                hand{i}(1).suit = hand{k}(2).suit;
+                hand{i}(2) = getCardsFromDeck(1);
+                hand{k}(2) = getCardsFromDeck(1);
+                number_of_hands = number_of_hands + 1;
+                k = 1;
+            elseif decideToHit1(dealerHand, hand, k)
+                hand{k}(3) = getCardsFromDeck(1);
+                k = k + 1;
+            elseif decideToDoubleDown1(dealerHand, hand, k)
+                hand{k}(3) = getCardsFromDeck(1);
+                k = k + 1;
+            else
+                k = k + 1;
+            end        
+        elseif checkIfHasAce(hand{k})
+            if decideToDoubleDown2(dealerHand, hand, k)
+                hand{k}(3) = getCardsFromDeck(1);
+            elseif decideToHit2(dealerHand, hand, k)
+                hand{k}(3) = getCardsFromDeck(1);
             end
-            data(i).chipsPerRound(round_counter) = players(i).chips;
-            
-            % if players(i).active == true
-            %     fprintf('%c ertek: %d keze:\n', players(i).name, getHandValue(players(i).hand));
-            %     players(i).hand'
-            % end
-        end
-
-        
-        % ha minden jatekos keszen all, akkor a dealer huz uj kartyakat, ameddig a keze 17 nem lesz
-        while getHandValue(dealerHand) < 17
-            dealerHand(length(dealerHand) + 1) = getCardsFromDeck(1);
-        end
-        
-        % megnezzuk kinek lett 21 a keze
-        for i = 1 : number_of_players
-            
-            hv = getHandValue(players(i).hand);
-            if hv == 21 
-                players(i).chips = players(i).chips + ceil(players(i).bet * 2.5);
-                players(i).alreadyPaid = true;
-            end
-            
-        end
-        
-        % kifizetes
-        dhv = getHandValue(dealerHand);
-        % fprintf('dealer ertek: %d keze:', dhv);
-        % dealerHand'
-
-        if dhv > 21
-            for i = 1 : number_of_players
-                if players(i).active == true && players(i).alreadyPaid == false
-                    players(i).chips = players(i).chips + ceil(players(i).bet * 2);
-                end
-            end
+            k = k + 1;
         else
-            for i = 1 : number_of_players
-                hv = getHandValue(players(i).hand);
-                if players(i).alreadyPaid == false && hv > dhv
-                    players(i).chips = players(i).chips + ceil(players(i).bet * 2);
-                end
+            if decideToDoubleDown3(dealerHand, hand, k)
+                hand{k}(3) = getCardsFromDeck(1);
+            elseif decideToHit3(dealerHand, hand, k)
+                hand{k}(3) = getCardsFromDeck(1);
             end
-        end
-
-        % nezzuk meg, hogy melyik jatekosoknak van meg penze.
-        for i = 1 : number_of_players
-            if players(i).chips > bet_amounts(1) 
-                players(i).active = true;
-            elseif players(i).chips < bet_amounts(1) && players(i).active == true
-                number_of_players_still_in_game = number_of_players_still_in_game - 1;
-                fprintf('Kiesett: %c %d\n', players(i).name, players(i).chips);
-                players(i).hand = [];
-                players(i).active = false;
-                
-            end
-            players(i).alreadyPaid = false;
+            k = k + 1;
         end
     end
 
-    for k = 1 : round_counter
-        s = 0;
-       for i = 1 : number_of_players
-            s = s + data(i).chipsPerRound(k);
-       end
-       averageChipsPerRound(k) = s / number_of_players;
+    for k = 1 : number_of_hands
+        fprintf('%d adik kez\n', k);
+        for i = 1 : length(hand{k})
+            disp(hand{k}(i));
+        end
     end
-    
-    % plot
-    averageChipsAllGame = mean([averageChipsPerRound]);
-    hold on;
-    % set(gca, 'Xtick', 0:1:round_counter, 'Ytick', 0:5:10000)
-    for i = 1 : number_of_players
-        plot(data(i).chipsPerRound)
-    end 
-    plot(averageChipsPerRound)
-    line([0 round_counter], [averageChipsAllGame averageChipsAllGame])
-    legend({data(:).name, 'Atlag / kor', 'Teljes atlag'}, 'Location', 'northeast');
-    
-    
-    % fprintf('Jatek vege: Elemzes:\n');
-    % for i = 1 : number_of_players
-    %     fprintf('nev: %c maradek penz: %d\n', players(i).name, players(i).chips);
-    % end
+    if checkIfPair(hand{1})
+        decideToSplit1(dealerHand, hand, 1)
+    end
 
-    % adj n darab kártyát a pakliból
+    function val = decideToSplit1(dealerHand, hand, k)
+        val = false;
+        if (hand{k}(1).value == 11) || ...
+         (value_between(2, 6, dealerHand(1).value) && value_between(6, 9, hand{k}(1).value)) || ...
+         (dealerHand(1).value == 7 && value_between(7, 8, hand{k}(1).value)) || ...
+         (value_between(8, 9, dealerHand(1).value) && value_between(8, 9, hand{k}(1).value)) || ...
+         (dealerHand(1).value == 10 && hand{k}(1).value == 8) || ...
+         (value_between(5, 6, dealerHand(1).value) && hand{k}(1).value == 4) || ...
+         (value_between(2, 7, dealerHand(1).value) && value_between(2, 3, hand{k}(1).value)) 
+            val = true;
+        end
+    end
+
+    function val = decideToHit1(dealerHand, hand, k)
+        val = false;
+        if (value_between(2, 7, hand{k}(1).value) && value_between(10, 11, dealerHand(1).value)) || ...
+            (value_between(6, 7, hand{k}(1).value) && value_between(8, 9, dealerHand(1).value)) || ...
+            (value_between(2, 4, hand{k}(1).value) && value_between(8, 9, dealerHand(1).value)) || ...
+            ((hand{k}(1).value == 6 || hand{k}(1).value == 4) && dealerHand(1).value == 7) || ...
+            (hand{k}(1).value == 4 && value_between(2, 4, dealerHand(1).value))
+                val = true; 
+        end
+    end
+
+    function val = decideToHit2(dealerHand, hand, k)
+        val = false;
+        hv = getHandValue(hand{k});
+        if (hv == 18 && value_between(9, 11, dealerHand(1).value)) || ...
+            (hv == 17 && dealerHand(1).value == 2) || ...
+            (value_between(13, 17, hv) && value_between(7, 11, dealerHand(1).value)) || ...
+            (value_between(13, 16, hv) && value_between(2, 3, dealerHand(1).value)) || ...
+            (value_between(2, 3, hv) && dealerHand(1).value == 4)
+            val = true;
+        end
+    end
+
+    function val = decideToHit3(dealerHand, hand, k)
+        val = false;
+        hv = getHandValue(hand{k});
+        if (value_between(12, 16, hv) && value_between(7, 8, dealerHand(1).value)) || ...
+            (value_between(12, 15, hv) && dealerHand(1).value == 9) || ...
+            (value_between(12, 14, hv) && value_between(10, 11, dealerHand(1).value)) || ...
+            (hv == 12 && value_between(2, 3, dealerHand(1).value)) || ...
+            (hv == 10 && value_between(10, 11, dealerHand(1).value)) || ...
+            (hv == 9 && dealerHand(1).value == 2) || ...
+            (hv == 9 && value_between(9, 11, dealerHand(1).value)) || ...
+            (value_between(5, 8, hv))
+                val = true;
+        end
+    end
+
+    function val = decideToDoubleDown1(dealerHand, hand, k)
+        val = false;
+        if hand{k}(1).value == 5 && value_between(2, 9, dealerHand(1).value)
+            val = true;
+        end
+    end
+
+    function val = decideToDoubleDown2(dealerHand, hand, k)
+        val = false;
+        hv = getHandValue(hand{k});
+        if (value_between(15, 18, hv) && value_between(4, 6, dealerHand(1).value)) || ...
+            (hv == 18 && dealerHand(1).value == 6) || ...
+            value_between(17, 18, hv) && dealerHand(1).value == 3 || ...
+            (hv == 18 && dealerHand(1).value == 2) || ...
+            (value_between(13, 14, hv) && value_between(5, 6, dealerHand(1).value)) 
+                val = true;
+        end
+    end
+
+    function val = decideToDoubleDown3(dealerHand, hand, k)
+        val = false;
+        hv = getHandValue(hand{k});
+        if (hv == 11) || ...
+            (hv == 10 && value_between(2, 9, dealerHand(1).value)) || ...
+            (hv == 9 && value_between(3, 6, dealerHand(1).value))
+                val = true;
+        end
+    end
+
+    function val = value_between(a, b, value)
+        if value >= a && value <= b
+            val = true;
+            return;
+        end
+        val = false;
+    end
+
+    function val = checkIfPair(cards)    
+        if length(cards) == 2 && cards(1).value == cards(2).value
+            val = true;
+            return;
+        end
+        val = false;
+    end
+
+    function val = checkIfHasAce(cards)
+        if length(cards) == 2 && (cards(1).value == 11 || cards(2).value == 11)
+            val = true;
+            return;
+        end
+        val = false; 
+    end
+
+
     function cards = getCardsFromDeck(n)
         if length(deck) < 2
             deck = getCards(number_of_decks);
         end
-
         cards = struct('value', 0, 'suit', '');
         for j = 1 : n
             cards(j) = deck(1);
             deck(1) = [];
-            
-        end     
+        end
     end
-
     % a lapok értéke
     function value = getHandValue(cards)
         value = 0;
@@ -183,19 +202,7 @@ function Blackjack(number_of_players, number_of_decks)
                     if card.value == 11
                         value = value - 10;
                     end
-                end
-            end
-        end
-    end        
-
-    % legnagyobb fogadás érték
-    function value = getBiggestPossibleBet(bet_values, avaliable_money)
-        n = length(bet_values);
-        value = 0;
-        for j = n : -1 : 1
-            if avaliable_money > bet_values(j)
-                value = j;
-                break;
+                end 
             end
         end
     end
