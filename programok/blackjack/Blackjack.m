@@ -1,17 +1,32 @@
-function Blackjack(number_of_decks, money, number_of_rounds, strategy)
+function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strategy)
     % input check
-    if number_of_decks > 8
+    if ~exist('number_of_decks') || isempty(number_of_decks)
+        number_of_decks = 1;
+    elseif number_of_decks > 8
         fprintf('Tul sok kartya\n');
         return;
     elseif number_of_decks < 1
         fprintf('Tul keves kartya\n');
         return;
     end
-    if money < 1
-        fprintf('Tul keves fogadas penz\n');
+    if ~exist('money') || isempty(money)
+        money = 10000;
+    elseif money < 1
+        fprintf('Tul keves penz\n');
         return;
     end
-    if number_of_rounds < 1
+    if ~exist('bet_amount') || isempty(bet_amount)
+        bet_amount = round(money / 10);
+    elseif bet_amount < 1
+        fprintf('Tul keves fogadas\n');
+        return;
+    elseif bet_amount > money
+        fprintf('Tul sok fogadas\n');
+        return;
+    end
+    if ~exist('number_of_rounds') || isempty(number_of_rounds)
+        number_of_rounds = 1;
+    elseif number_of_rounds < 1
         fprintf('Tul keves kor\n');
         return;
     end
@@ -23,60 +38,115 @@ function Blackjack(number_of_decks, money, number_of_rounds, strategy)
     hand{1} = getCardsFromDeck(2);
     max_number_of_hands = 4;
     number_of_hands = 1;
+
+    %%%% Test
+    r = 1;
+    while r <= number_of_rounds
+        bet(1) = bet_amount;
+        fprintf('money: %d, bet_amount: %d\n', money, bet_amount);
     
-    fprintf('dealer hand:\n');
-    for i = 1 : 2
-        disp(dealerHand(i));
-    end
+        fprintf('dealer hand:\n');
+        for i = 1 : 2
+            disp(dealerHand(i));
+        end
 
-    fprintf('player hand:\n');
-
-    k = 1;
-    while k <= number_of_hands
-        if checkIfPair(hand{k})
-            if decideToSplit1(dealerHand, hand, k) && number_of_hands < max_number_of_hands
-                hand{number_of_hands + 1}(1).value = hand{k}(2).value;
-                hand{number_of_hands + 1}(1).suit = hand{k}(2).suit;
-                hand{number_of_hands + 1}(2) = getCardsFromDeck(1);
-                hand{k}(2) = getCardsFromDeck(1);
-                number_of_hands = number_of_hands + 1;
-                k = 1;
-            elseif decideToHit1(dealerHand, hand, k)
-                hand{k}(3) = getCardsFromDeck(1);
-                k = k + 1;
-            elseif decideToDoubleDown1(dealerHand, hand, k)
-                hand{k}(3) = getCardsFromDeck(1);
+        fprintf('player hand:\n');
+        k = 1;
+        while k <= number_of_hands
+            if checkIfPair(hand{k})
+                if decideToSplit1(dealerHand, hand, k) && number_of_hands < max_number_of_hands
+                    bet(number_of_hands + 1) = bet_amount;
+                    hand{number_of_hands + 1}(1).value = hand{k}(2).value;
+                    hand{number_of_hands + 1}(1).suit = hand{k}(2).suit;
+                    hand{number_of_hands + 1}(2) = getCardsFromDeck(1);
+                    hand{k}(2) = getCardsFromDeck(1);
+                    number_of_hands = number_of_hands + 1;
+                    k = 1;
+                elseif decideToHit1(dealerHand, hand, k)
+                    hand{k}(3) = getCardsFromDeck(1);
+                    k = k + 1;
+                elseif decideToDoubleDown1(dealerHand, hand, k)
+                    hand{k}(3) = getCardsFromDeck(1);
+                    bet(k) = round(bet(k) * 2);
+                    k = k + 1;
+                else
+                    k = k + 1;
+                end        
+            elseif checkIfHasAce(hand{k})
+                if decideToDoubleDown2(dealerHand, hand, k)
+                    hand{k}(3) = getCardsFromDeck(1);
+                    bet(k) = round(bet(k) * 2);
+                elseif decideToHit2(dealerHand, hand, k)
+                    hand{k}(3) = getCardsFromDeck(1);
+                end
                 k = k + 1;
             else
+                if decideToDoubleDown3(dealerHand, hand, k)
+                    hand{k}(3) = getCardsFromDeck(1);
+                    bet(k) = round(bet(k) * 2);
+                elseif decideToHit3(dealerHand, hand, k)
+                    hand{k}(3) = getCardsFromDeck(1);
+                end
                 k = k + 1;
-            end        
-        elseif checkIfHasAce(hand{k})
-            if decideToDoubleDown2(dealerHand, hand, k)
-                hand{k}(3) = getCardsFromDeck(1);
-            elseif decideToHit2(dealerHand, hand, k)
-                hand{k}(3) = getCardsFromDeck(1);
             end
-            k = k + 1;
-        else
-            if decideToDoubleDown3(dealerHand, hand, k)
-                hand{k}(3) = getCardsFromDeck(1);
-            elseif decideToHit3(dealerHand, hand, k)
-                hand{k}(3) = getCardsFromDeck(1);
+        end
+
+        for k = 1 : number_of_hands
+            fprintf('%d adik kez\n', k);
+            for i = 1 : length(hand{k})
+                disp(hand{k}(i));
             end
-            k = k + 1;
         end
-    end
 
-    for k = 1 : number_of_hands
-        fprintf('%d adik kez\n', k);
-        for i = 1 : length(hand{k})
-            disp(hand{k}(i));
+        while getHandValue(dealerHand) < 17
+            dealerHand(length(dealerHand) + 1) = getCardsFromDeck(1);
         end
-    end
-    if checkIfPair(hand{1})
-        decideToSplit1(dealerHand, hand, 1)
-    end
 
+        fprintf('dealer keze 17 felett:\n');
+        for i = 1 : length(dealerHand)
+            disp(dealerHand(i));
+        end
+
+        dhv = getHandValue(dealerHand);
+        fprintf('Dealer kezenek erteke: %d\n', dhv);
+
+        %%% test
+        for i = 1 : number_of_hands
+            fprintf('hand %d Bet: %d\n', i, bet(i));
+        end
+
+        if dhv > 21
+            fprintf('dealer besokalt\n', dhv);
+            for i = 1 : number_of_hands
+                money = money + round(bet(i) * 2);
+            end
+        else 
+            for i = 1 : number_of_hands
+                hv = getHandValue(hand{k});
+                fprintf('jatekos kezenek erteke: %d\n', hv);
+                if hv > 21
+                    money = round(money - bet(i));
+                    fprintf('jatekos besokalt\n');
+                elseif hv == 21
+                    fprintf('jatekos blackjack\n');
+                    money = money + round(bet(i) * 2.5);
+                elseif hv > dhv
+                    fprintf('jatekos nyert\n');
+                    money = money + round(bet(i) * 2);
+                elseif hv < dhv
+                    fprintf('jatekos vesztett\n');
+                    money = round(money - bet(i));
+                else
+                    fprintf('dontetlen\n');
+                end
+            end
+        end
+
+        fprintf('maradek penz: %d\n', money);
+        r = r + 1;
+    end
+    
+    
     function val = decideToSplit1(dealerHand, hand, k)
         val = false;
         if (hand{k}(1).value == 11) || ...
@@ -185,11 +255,12 @@ function Blackjack(number_of_decks, money, number_of_rounds, strategy)
     function cards = getCardsFromDeck(n)
         if length(deck) < 2
             deck = getCards(number_of_decks);
+            deck = deck(randperm(length(deck)));
         end
         cards = struct('value', 0, 'suit', '');
         for j = 1 : n
-            cards(j) = deck(1);
-            deck(1) = [];
+            cards(j) = deck(length(deck));
+            deck(length(deck)) = [];
         end
     end
     % a lapok értéke
