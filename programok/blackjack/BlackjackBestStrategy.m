@@ -5,6 +5,8 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
     deck = deck(randperm(length(deck)));
     max_number_of_hands = 4;
     
+    starting_money = money;
+
     clc;
 
     %%%% Test
@@ -18,7 +20,9 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
         hand = {[], [], [], []};
         % játékos kap 2 kártyát
         hand{1} = getCardsFromDeck(2);
+        canDoubleDown = true;
         fprintf('Round %d\n', r);
+        bet = zeros(4, 1);
         % fogadás tömb
         bet(1) = bet_amount;
         fprintf('money: %d, bet_amount: %d\n', money, bet_amount);
@@ -48,7 +52,8 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                 elseif decideToHit1(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
                     hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
-                elseif decideToDoubleDown1(dealerHand, hand, k) && (money >= (sum(bet) + bet(k)))
+                    canDoubleDown = false;
+                elseif canDoubleDown && decideToDoubleDown1(dealerHand, hand, k) && (money >= (sum(bet) + bet(k)))
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
@@ -58,7 +63,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                     k = k + 1;
                 end        
             elseif checkIfHasAce(hand{k})
-                if decideToDoubleDown2(dealerHand, hand, k) && (money >= (sum(bet) + bet(k)))
+                if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && (money >= (sum(bet) + bet(k)))
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
@@ -67,11 +72,12 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                 elseif decideToHit2(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
                     hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
+                    canDoubleDown = false;
                 else
                     k = k + 1;
                 end
             else
-                if decideToDoubleDown3(dealerHand, hand, k) && (money >= (sum(bet) + bet(k)))
+                if canDoubleDown && decideToDoubleDown3(dealerHand, hand, k) && (money >= (sum(bet) + bet(k)))
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
@@ -80,6 +86,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                 elseif decideToHit3(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
                     hand{k}(length(hand{k}) + 1) = getCardsFromDeck(1);
+                    canDoubleDown = false;
                 else
                     k = k + 1;
                 end
@@ -90,6 +97,14 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
             fprintf('%d. kez\n', k);
             for i = 1 : length(hand{k})
                 disp(hand{k}(i));
+            end
+        end
+
+        for i = 1 : number_of_hands
+            hv = getHandValue(hand{i});
+            if hv > 21
+                fprintf('jatekos %d. keze besokalt\n', i);
+                bet(i) = 0;
             end
         end
 
@@ -119,10 +134,9 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
             for i = 1 : number_of_hands
                 hv = getHandValue(hand{i});
                 fprintf('jatekos %d. kezenek erteke: %d\n', i, hv);
-                if hv > 21
-                    fprintf('jatekos besokalt\n');
-                elseif hv == dhv 
+                if hv == dhv 
                     fprintf('dontetlen\n');
+                    money = money + round(bet(i));
                 elseif hv == 21
                     fprintf('jatekos blackjack\n');
                     money = money + round(bet(i) * 2.5);
@@ -142,6 +156,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
         fprintf('elfogyott a penz\n');
     else
         fprintf('vege\n');
+        fprintf('Profit: %d\n', money - starting_money);
     end
     
     function val = decideToSplit1(dealerHand, hand, k)
