@@ -1,4 +1,4 @@
-function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strategy, sidebet, sidebet_amount)
+function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strategy)
     % input check
     if ~exist('number_of_decks', 'var') || isempty(number_of_decks)
         number_of_decks = 1;
