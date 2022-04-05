@@ -1,8 +1,15 @@
 function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds)
+    %
+    %   Plotolashoz szukseges valtozok
+    %
+    number_of_wins = 0;
+    number_of_draws = 0;
+    number_of_losses = 0;
+    
     % pakli kártya előkészítése
     deck = getCards(number_of_decks);
     % pakli keverése
-    deck = deck( (length(deck)));
+    deck = deck(randperm(length(deck)));
     % egy taekos max 3x splitelhet
     max_number_of_hands = 4;
     % kiiratashoz eltarojuk a kezdopenzt
@@ -16,6 +23,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
     round_counter = 1;
     while ((round_counter <= number_of_rounds) && (money >= bet_amount))
         fprintf('kartyak szama: %d\n', length(deck));
+        money_per_round(round_counter) = money;
         % jatekos kezei
         number_of_hands = 1;
         % dealer kap 2 kártyát
@@ -173,20 +181,25 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                     if hv == 21 && dhv == 21 && length(hand{k}) > 2
                         fprintf('dealer blackjack\n');
                         fprintf('jatekos vesztett\n');
+                        number_of_losses = number_of_losses + 1;
                     elseif hv == dhv 
                         fprintf('dontetlen\n');
                         money = money + round(bet(i));
+                        number_of_draws = number_of_draws + 1;
                     elseif canBlackjack && hv == 21 && length(hand{i}) == 2
                         fprintf('jatekos blackjack\n');
                         money = money + round(bet(i) * 2.5);
+                        number_of_wins = number_of_wins + 1;
                     elseif hv > dhv
                         fprintf('jatekos nyert\n');
                         money = money + round(bet(i) * 2);
+                        number_of_wins = number_of_wins + 1;
                     elseif hv < dhv
                         if dhv == 21
                             fprintf('dealer blackjack\n');
                         end
                         fprintf('jatekos vesztett\n');
+                        number_of_losses = number_of_losses + 1;
                     end
                 end
             end
@@ -194,6 +207,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
         else
             fprintf('a jatekos osszes keze besokalt\n');
             fprintf('maradek penz: %d\n', money);
+            number_of_losses = number_of_losses + number_of_hands; 
         end
         round_counter = round_counter + 1;
     end
@@ -204,9 +218,30 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
         fprintf('vege\n');
         fprintf('Profit: %d\n', money - starting_money);
     end
-    
-    % nested functions
 
+    %
+    % PLOT
+    %
+    figure;
+    winstats = [number_of_wins; number_of_draws; number_of_losses];
+    winstatlabels = {'WIN', 'DRAW', 'LOSS'};
+    b = bar(winstats, 'green');
+    set(gca,'xticklabel',winstatlabels, 'FontSize', 18);
+    set(get(gca, 'Title'), 'String', 'nyerési arány');
+    
+    
+    figure
+    xvals = 1 : round_counter - 1;
+    length(xvals)
+    length(money_per_round)
+    plot(xvals, money_per_round, 'LineWidth', 3);
+    hold on
+    hline = linspace(0, number_of_rounds, starting_money);
+    plot(xvals, starting_money, 'LineWidth', 3);
+    set(get(gca, 'Title'), 'String', 'Körönkénti pénz');
+    set(gca, 'FontSize', 18);
+    % nested functions
+    
     %
     % 1-es dontesi fuggvenyek, akkor vannak hivva, ha a kez egy par
     %
@@ -248,7 +283,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
         val = false;
         hv = getHandValue(hand{k});
         if (value_between(13, 17, hv)) || ...
-            (hv == 18 && value_between(9, 11, dhv)) 
+            (hv == 18 && value_between(9, 11, dealerHand(1).value)) 
             val = true;
         end
     end
