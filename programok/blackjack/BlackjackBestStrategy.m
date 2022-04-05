@@ -56,16 +56,16 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                     hand{k}(2) = getCardsFromDeck(1);
                     number_of_hands = number_of_hands + 1;
                     k = 1;
-                elseif canHit && decideToHit1(dealerHand, hand, k)
-                    fprintf('jatekos %d kez hit\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
-                    canDoubleDown = false;
                 elseif canDoubleDown && decideToDoubleDown1(dealerHand, hand, k) && (money >= (sum(bet) + bet(k)))
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
                     money = money - bet_amount;
                     k = k + 1;
+                elseif canHit && decideToHit1(dealerHand, hand, k)
+                    fprintf('jatekos %d kez hit\n', k);
+                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    canDoubleDown = false;
                 else
                     k = k + 1;
                 end        
@@ -151,7 +151,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                     elseif hv == dhv 
                         fprintf('dontetlen\n');
                         money = money + round(bet(i));
-                    elseif canBlackjack && hv == 21 && length(hand{i} == 2)
+                    elseif canBlackjack && hv == 21 && length(hand{i}) == 2
                         fprintf('jatekos blackjack\n');
                         money = money + round(bet(i) * 2.5);
                     elseif hv > dhv
@@ -167,7 +167,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
             end
             fprintf('maradek penz: %d\n', money);
         else
-            fprintf('Minden kez besokalt\n');
+            fprintf('a jatekos osszes keze besokalt\n');
             fprintf('maradek penz: %d\n', money);
         end
         r = r + 1;
@@ -197,11 +197,10 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
 
     function val = decideToHit1(dealerHand, hand, k)
         val = false;
-        if (value_between(2, 7, hand{k}(1).value) && value_between(10, 11, dealerHand(1).value)) || ...
-            (value_between(6, 7, hand{k}(1).value) && value_between(8, 9, dealerHand(1).value)) || ...
-            (value_between(2, 4, hand{k}(1).value) && value_between(8, 9, dealerHand(1).value)) || ...
-            ((hand{k}(1).value == 6 || hand{k}(1).value == 4) && dealerHand(1).value == 7) || ...
-            (hand{k}(1).value == 4 && value_between(2, 4, dealerHand(1).value))
+        if (value_between(2, 7, hand{k}(1).value) && value_between(8, 11, dealerHand(1).value)) || ...
+            (value_between(4, 6, hand{k}(1).value) && dealerHand(1).value == 7) || ...
+            (value_between(4, 5, hand{k}(1).value) && value_between(2, 4, dealerHand(1).value)) || ...
+            (hand{k}(1).value == 5 && value_between(5, 6, dealerHand(1).value))
                 val = true; 
         end
     end
@@ -209,11 +208,8 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
     function val = decideToHit2(dealerHand, hand, k)
         val = false;
         hv = getHandValue(hand{k});
-        if (hv == 18 && value_between(9, 11, dealerHand(1).value)) || ...
-            (hv == 17 && dealerHand(1).value == 2) || ...
-            (value_between(13, 17, hv) && value_between(7, 11, dealerHand(1).value)) || ...
-            (value_between(13, 16, hv) && value_between(2, 3, dealerHand(1).value)) || ...
-            (value_between(12, 13, hv) && dealerHand(1).value == 4)
+        if (value_between(13, 17, hv)) || ...
+            (hv == 18 && value_between(9, 11, dhv)) 
             val = true;
         end
     end
@@ -221,12 +217,9 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
     function val = decideToHit3(dealerHand, hand, k)
         val = false;
         hv = getHandValue(hand{k});
-        if (value_between(12, 16, hv) && value_between(7, 11, dealerHand(1).value)) || ...
+        if (value_between(5, 11, hv)) || ...
             (hv == 12 && value_between(2, 3, dealerHand(1).value)) || ...
-            (hv == 10 && value_between(10, 11, dealerHand(1).value)) || ...
-            (hv == 9 && dealerHand(1).value == 2) || ...
-            (hv == 9 && value_between(9, 11, dealerHand(1).value)) || ...
-            (value_between(5, 8, hv))
+            (value_between(12, 16, hv) && value_between(7, 11, dealerHand(1).value))
                 val = true;
         end
     end
