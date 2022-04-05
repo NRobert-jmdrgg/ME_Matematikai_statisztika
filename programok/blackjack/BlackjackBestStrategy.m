@@ -249,7 +249,11 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
     end
 
     function cards = getCardsFromDeck(n)
-        if length(deck) < 2
+        min_number_of_cards_in_deck = 2;
+        if number_of_decks > 2
+            min_number_of_cards_in_deck = 104;
+        end
+        if length(deck) < min_number_of_cards_in_deck
             fprintf('Elfogytak a kartyak uj pakli\n');
             deck = getCards(number_of_decks);
             deck = deck(randperm(length(deck)));
