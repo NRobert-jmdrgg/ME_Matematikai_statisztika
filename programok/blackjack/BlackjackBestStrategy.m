@@ -145,16 +145,22 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                 for i = 1 : number_of_hands
                     hv = getHandValue(hand{i});
                     fprintf('jatekos %d. kezenek erteke: %d\n', i, hv);
-                    if hv == dhv 
+                    if hv == 21 && dhv == 21 && length(hand{k}) > 2
+                        fprintf('dealer blackjack\n');
+                        fprintf('jatekos vesztett\n');
+                    elseif hv == dhv 
                         fprintf('dontetlen\n');
                         money = money + round(bet(i));
-                    elseif canBlackjack && hv == 21
+                    elseif canBlackjack && hv == 21 && length(hand{i} == 2)
                         fprintf('jatekos blackjack\n');
                         money = money + round(bet(i) * 2.5);
                     elseif hv > dhv
                         fprintf('jatekos nyert\n');
                         money = money + round(bet(i) * 2);
                     elseif hv < dhv
+                        if dhv == 21
+                            fprintf('dealer blackjack\n');
+                        end
                         fprintf('jatekos vesztett\n');
                     end
                 end
