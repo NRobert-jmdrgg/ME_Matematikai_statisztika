@@ -1,4 +1,4 @@
-function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
+function BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, percent_profit)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -7,6 +7,7 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
     number_of_losses = 0;
     win_streak = 0;
     lose_streak = 0;
+
     % pakli kártya előkészítése
     deck = getCards(number_of_decks);
     % pakli keverése
@@ -17,15 +18,14 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
     starting_money = money;
 
     minimum_bet = 5;
-
     % clear screen matlab konzolra
     clc;
+    fprintf('kezdo: %d %d nal megall\n', starting_money, starting_money * percent_profit);
     %
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
     %
     round_counter = 1;
-
-    while ((round_counter <= number_of_rounds) && (money >= minimum_bet))
+    while (money >= minimum_bet) && (money < starting_money * percent_profit)
         fprintf('kartyak szama: %d\n', length(deck));
         money_per_round(round_counter) = money;
         updateStreaks();
@@ -54,16 +54,13 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
         money = money - bet_amount;
         % debug kiiratas
         fprintf('dealer keze:\n');
-
         for i = 1:2
             disp(dealerHand(i));
         end
-
         %
         %   Vegigmegyunk az osszes kezen es megnezzuk, hogy hit / split / double vagy stand legyen a lepes
         %
         k = 1;
-
         while k <= number_of_hands
             % megnezzuk hogy a játékos k-adik keze páros pl 3-3 lapok
             if checkIfPair(hand{k})
@@ -80,7 +77,6 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                         canHit = false;
                         canBlackjack = false;
                     end
-
                     % jatekos 2 uj lapot
                     hand{number_of_hands + 1}(1).value = hand{k}(2).value;
                     hand{number_of_hands + 1}(1).name = hand{k}(2).name;
@@ -107,9 +103,7 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 else
                     k = k + 1;
                 end
-
             elseif checkIfHasAce(hand{k})
-
                 if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && money >= bet(k)
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
@@ -123,9 +117,7 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 else
                     k = k + 1;
                 end
-
             else
-
                 if canDoubleDown && (money >= bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
@@ -139,29 +131,22 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 else
                     k = k + 1;
                 end
-
             end
-
         end
 
         % debug kiiratas
         fprintf('jatekos keze:\n');
-
         for k = 1:number_of_hands
             fprintf('%d. kez\n', k);
-
             for i = 1:length(hand{k})
                 disp(hand{k}(i));
             end
-
         end
-
         % megszamojuk a besokalt kezeket
         busted_hand_count = 0;
 
         for i = 1:number_of_hands
             hv = getHandValue(hand{i});
-
             if hv > 21
                 fprintf('jatekos %d. keze besokalt\n', i);
                 bet(i) = 0;
@@ -169,7 +154,6 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 busted_hand_count = busted_hand_count + 1;
                 number_of_losses = number_of_losses + 1;
             end
-
         end
 
         % ha a jatekosnak van olyan keze, ami nincs besokalva
@@ -196,14 +180,11 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
             % ha a dealer keze besokalt, akkor a jatekos nyer
             if dhv > 21
                 fprintf('dealer besokalt %d\n', dhv);
-
                 for i = 1:number_of_hands
                     money = money + round(bet(i) * 2);
                 end
-
                 number_of_wins = number_of_wins + ( number_of_hands - busted_hand_count );
             else
-
                 for i = 1:number_of_hands
                     hv = getHandValue(hand{i});
                     % debut kiiras
@@ -227,32 +208,26 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                         money = money + round(bet(i) * 2);
                         number_of_wins = number_of_wins + 1;
                     elseif hv < dhv
-
                         if dhv == 21
                             % fprintf('dealer blackjack\n');
                         end
-
                         fprintf('jatekos vesztett\n');
                         number_of_losses = number_of_losses + 1;
                     end
-
                 end
-
             end
-
             fprintf('maradek penz: %d\n', money);
         else
             fprintf('a jatekos osszes keze besokalt\n');
             fprintf('maradek penz: %d\n', money);
-
         end
 
         round_counter = round_counter + 1;
     end
 
-    if round_counter < number_of_rounds
+    if money <= minimum_bet
         fprintf('elfogyott a penz\n');
-    else
+    else    
         fprintf('vege\n');
         fprintf('Profit: %d\n', money - starting_money);
     end
@@ -276,7 +251,7 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
     length(money_per_round);
     plot(xvals, money_per_round, 'LineWidth', 3);
     hold on;
-    hline = linspace(0, number_of_rounds, starting_money);
+    
     plot(xvals, starting_money, 'LineWidth', 3);
     set(get(gca, 'Title'), 'String', native2unicode('Körönkénti pénz'));
     set(get(gca, 'XLabel'), 'String', native2unicode('játszmák száma száma'));

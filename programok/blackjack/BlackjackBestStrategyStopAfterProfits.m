@@ -1,12 +1,11 @@
-function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
+function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amount, percent_profit)
     %
     %   Plotolashoz szukseges valtozok
     %
     number_of_wins = 0;
     number_of_draws = 0;
     number_of_losses = 0;
-    win_streak = 0;
-    lose_streak = 0;
+    
     % pakli kártya előkészítése
     deck = getCards(number_of_decks);
     % pakli keverése
@@ -15,21 +14,19 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
     max_number_of_hands = 4;
     % kiiratashoz eltarojuk a kezdopenzt
     starting_money = money;
-
-    minimum_bet = 5;
-
     % clear screen matlab konzolra
     clc;
+
     %
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
     %
     round_counter = 1;
 
-    while ((round_counter <= number_of_rounds) && (money >= minimum_bet))
+    fprintf('kezdo: %d %d nal megall\n', starting_money, starting_money * percent_profit);
+
+    while (money >= bet_amount) && (money < starting_money * percent_profit)
         fprintf('kartyak szama: %d\n', length(deck));
         money_per_round(round_counter) = money;
-        updateStreaks();
-        bet_amount = decideBetAmount();
         % jatekos kezei
         number_of_hands = 1;
         % dealer kap 2 kártyát
@@ -44,7 +41,7 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
         canDoubleDown = true;
         canBlackjack = true;
         canHit = true;
-        fprintf('streak: win: %d loss: %d\n', win_streak, lose_streak);
+        
         fprintf('Round %d\n', round_counter);
         % a jatekos minden kezere van fogadas (4 emelu tomb inicializalva 0-akkal)
         bet = zeros(4, 1);
@@ -63,14 +60,11 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
         %   Vegigmegyunk az osszes kezen es megnezzuk, hogy hit / split / double vagy stand legyen a lepes
         %
         k = 1;
-
         while k <= number_of_hands
             % megnezzuk hogy a játékos k-adik keze páros pl 3-3 lapok
             if checkIfPair(hand{k})
                 % split esetén új fogadás és kéz lesz.
-                money
-                bet
-                if decideToSplit1(dealerHand, hand, k) && (number_of_hands < max_number_of_hands) && (money >= bet(k))
+                if decideToSplit1(dealerHand, hand, k) && (number_of_hands < max_number_of_hands && money >= bet(k))
                     fprintf('jatekos split\n');
                     bet(number_of_hands + 1) = bet_amount;
                     % bet az uj kezre
@@ -107,10 +101,8 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 else
                     k = k + 1;
                 end
-
             elseif checkIfHasAce(hand{k})
-
-                if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && money >= bet(k)
+                if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && (money >= bet(k))
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
@@ -123,10 +115,8 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 else
                     k = k + 1;
                 end
-
             else
-
-                if canDoubleDown && (money >= bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
+                if canDoubleDown && (money >=  bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
@@ -139,29 +129,22 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 else
                     k = k + 1;
                 end
-
             end
-
         end
 
         % debug kiiratas
         fprintf('jatekos keze:\n');
-
         for k = 1:number_of_hands
             fprintf('%d. kez\n', k);
-
             for i = 1:length(hand{k})
                 disp(hand{k}(i));
             end
-
         end
 
         % megszamojuk a besokalt kezeket
         busted_hand_count = 0;
-
         for i = 1:number_of_hands
             hv = getHandValue(hand{i});
-
             if hv > 21
                 fprintf('jatekos %d. keze besokalt\n', i);
                 bet(i) = 0;
@@ -169,7 +152,6 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                 busted_hand_count = busted_hand_count + 1;
                 number_of_losses = number_of_losses + 1;
             end
-
         end
 
         % ha a jatekosnak van olyan keze, ami nincs besokalva
@@ -178,17 +160,14 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
             while getHandValue(dealerHand) < 17
                 dealerHand(end + 1) = getCardsFromDeck(1);
             end
-
             fprintf('dealer keze 17 felett:\n');
-
             for i = 1:length(dealerHand)
                 disp(dealerHand(i));
             end
-
             dhv = getHandValue(dealerHand);
             fprintf('Dealer kezenek erteke: %d\n', dhv);
 
-            % debug kiiras
+            %%% debug kiiras
             for i = 1:number_of_hands
                 fprintf('hand %d Bet: %d\n', i, bet(i));
             end
@@ -196,14 +175,11 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
             % ha a dealer keze besokalt, akkor a jatekos nyer
             if dhv > 21
                 fprintf('dealer besokalt %d\n', dhv);
-
                 for i = 1:number_of_hands
                     money = money + round(bet(i) * 2);
                 end
-
                 number_of_wins = number_of_wins + ( number_of_hands - busted_hand_count );
             else
-
                 for i = 1:number_of_hands
                     hv = getHandValue(hand{i});
                     % debut kiiras
@@ -227,32 +203,27 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
                         money = money + round(bet(i) * 2);
                         number_of_wins = number_of_wins + 1;
                     elseif hv < dhv
-
                         if dhv == 21
-                            % fprintf('dealer blackjack\n');
+                            fprintf('dealer blackjack\n');
                         end
 
                         fprintf('jatekos vesztett\n');
                         number_of_losses = number_of_losses + 1;
                     end
-
                 end
-
             end
-
             fprintf('maradek penz: %d\n', money);
         else
             fprintf('a jatekos osszes keze besokalt\n');
             fprintf('maradek penz: %d\n', money);
-
         end
-
         round_counter = round_counter + 1;
     end
 
-    if round_counter < number_of_rounds
+    
+    if money <= bet_amount
         fprintf('elfogyott a penz\n');
-    else
+    else    
         fprintf('vege\n');
         fprintf('Profit: %d\n', money - starting_money);
     end
@@ -276,7 +247,7 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
     length(money_per_round);
     plot(xvals, money_per_round, 'LineWidth', 3);
     hold on;
-    hline = linspace(0, number_of_rounds, starting_money);
+    
     plot(xvals, starting_money, 'LineWidth', 3);
     set(get(gca, 'Title'), 'String', native2unicode('Körönkénti pénz'));
     set(get(gca, 'XLabel'), 'String', native2unicode('játszmák száma száma'));
@@ -405,35 +376,6 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
         end
     end
 
-    function updateStreaks()
-        if length(money_per_round) >= 2
-            if money_per_round(end - 1) > money
-                if win_streak > 0
-                    win_streak = 0;
-                end
-                lose_streak = lose_streak + 1;
-            elseif money_per_round(end - 1) < money
-                if lose_streak > 0
-                    lose_streak = 0;
-                end
-                win_streak = win_streak + 1;
-            end
-        end
-    end 
-
-    function bet_amount = decideBetAmount()
-        bet_amount = ceil(money * 0.25);
-        if value_between(1, 4, lose_streak)
-            bet_amount = ceil(money * (0.25 - (0.05 * lose_streak)));
-        elseif lose_streak > 4
-            bet_amount = ceil(money * 0.03);
-        end
-        
-        if value_between(1, 14, win_streak)
-            bet_amount = ceil(money * (0.25 + (0.05 * win_streak)));
-        elseif win_streak > 14
-            bet_amount = money;
-        end
-    end
     
+
 end

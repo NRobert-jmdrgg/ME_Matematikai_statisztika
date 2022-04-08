@@ -64,7 +64,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
             % megnezzuk hogy a játékos k-adik keze páros pl 3-3 lapok
             if checkIfPair(hand{k})
                 % split esetén új fogadás és kéz lesz.
-                if decideToSplit1(dealerHand, hand, k) && (number_of_hands < max_number_of_hands && money >= bet(k)))
+                if decideToSplit1(dealerHand, hand, k) && (number_of_hands < max_number_of_hands && money >= bet(k))
                     % fprintf('jatekos split\n');
                     bet(number_of_hands + 1) = bet_amount;
                     % bet az uj kezre
@@ -85,7 +85,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
                     % ujrakezdjuk a kezek vizsgalatat
                     k = 1;
                     % csak akkor double down ha meg nem hitelt a jatekos es van elegendo penze es ugy dont, hogy duplaz
-                elseif canDoubleDown && (money >= bet(k))) && decideToDoubleDown1(dealerHand, hand, k)
+                elseif canDoubleDown && (money >= bet(k)) && decideToDoubleDown1(dealerHand, hand, k)
                     % fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
@@ -104,7 +104,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
 
             elseif checkIfHasAce(hand{k})
 
-                if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && (money >= bet(k)))
+                if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && (money >= bet(k))
                     % fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
