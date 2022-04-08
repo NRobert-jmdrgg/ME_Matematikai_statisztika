@@ -120,7 +120,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
 
             else
 
-                if canDoubleDown && (money >= (sum(bet) + bet(k))) && decideToDoubleDown3(dealerHand, hand, k)
+                if canDoubleDown && (money >=  bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
                     % fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;

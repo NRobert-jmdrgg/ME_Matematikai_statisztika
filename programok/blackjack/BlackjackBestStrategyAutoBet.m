@@ -94,7 +94,7 @@ function BlackjackBestStrategy(number_of_decks, money, number_of_rounds)
                     % ujrakezdjuk a kezek vizsgalatat
                     k = 1;
                     % csak akkor double down ha meg nem hitelt a jatekos es van elegendo penze es ugy dont, hogy duplaz
-                elseif canDoubleDown && (money >= (sum(bet) + bet(k))) && decideToDoubleDown1(dealerHand, hand, k)
+                elseif canDoubleDown && (money >= bet(k)) && decideToDoubleDown1(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1);
                     bet(k) = bet(k) + bet_amount;
