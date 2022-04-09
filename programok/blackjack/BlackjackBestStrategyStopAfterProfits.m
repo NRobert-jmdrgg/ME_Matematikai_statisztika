@@ -1,4 +1,4 @@
-function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amount, percent_profit)
+function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amount, percent_profit, sidebet)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -24,7 +24,7 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
 
     fprintf('kezdo: %d %d nal megall\n', starting_money, starting_money * percent_profit);
 
-    while (money >= bet_amount) && (money < starting_money * percent_profit)
+    while (money >= (bet_amount + sidebet.sidebet_amount)) && (money < starting_money * percent_profit)
         fprintf('kartyak szama: %d\n', length(deck));
         money_per_round(round_counter) = money;
         % jatekos kezei
@@ -47,8 +47,15 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
         bet = zeros(4, 1);
         % belepo fogadas
         bet(1) = bet_amount;
-        fprintf('money: %d, bet_amount: %d\n', money, bet_amount);
-        money = money - bet_amount;
+        fprintf('money: %d, bet_amount: %d side_bet: %s sidebetAmount %d sidebet szorzo %d\n', money, bet_amount, sidebet.name, sidebet.sidebet_amount, sidebet.multiplier);
+        money = money - bet_amount - sidebet.sidebet_amount;
+
+        if sidebet.func_ptr(hand{1}, dealerHand(1))
+            fprintf('Nyert a sidebet\n');
+            money = money + sidebet.sidebet_amount * sidebet.multiplier;
+        else
+            fprintf('vesztett a sidebet\n');
+        end
         % debug kiiratas
         fprintf('dealer keze:\n');
 
@@ -366,16 +373,11 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
             deck = getCards(number_of_decks);
             deck = deck(randperm(length(deck)));
         end
-
         cards = struct('value', 0, 'name', '', 'suit', '');
-
         for j = 1:n
             cards(j) = deck(end);
             % a tombot stack-kent kezeljuk
             deck(end) = [];
         end
     end
-
-    
-
 end

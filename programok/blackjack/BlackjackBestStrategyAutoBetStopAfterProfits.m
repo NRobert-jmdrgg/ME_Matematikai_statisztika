@@ -1,4 +1,4 @@
-function BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, percent_profit)
+function BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, percent_profit, sidebet)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -25,7 +25,7 @@ function BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, pe
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
     %
     round_counter = 1;
-    while (money >= minimum_bet) && (money < starting_money * percent_profit)
+    while (money >= (minimum_bet + sidebet.sidebet_amount)) && (money < starting_money * percent_profit)
         fprintf('kartyak szama: %d\n', length(deck));
         money_per_round(round_counter) = money;
         updateStreaks();
@@ -50,8 +50,15 @@ function BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, pe
         bet = zeros(4, 1);
         % belepo fogadas
         bet(1) = bet_amount;
-        fprintf('money: %d, bet_amount: %d\n', money, bet_amount);
-        money = money - bet_amount;
+        fprintf('money: %d, bet_amount: %d side_bet: %s sidebetAmount %d sidebet szorzo %d\n', money, bet_amount, sidebet.name, sidebet.sidebet_amount, sidebet.multiplier);
+        money = money - bet_amount - sidebet.sidebet_amount;
+
+        if sidebet.func_ptr(hand{1}, dealerHand(1))
+            fprintf('Nyert a sidebet\n');
+            money = money + sidebet.sidebet_amount * sidebet.multiplier;
+        else
+            fprintf('vesztett a sidebet\n');
+        end
         % debug kiiratas
         fprintf('dealer keze:\n');
         for i = 1:2

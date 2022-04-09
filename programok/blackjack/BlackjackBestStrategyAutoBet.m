@@ -1,4 +1,4 @@
-function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
+function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds, sidebet)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -25,7 +25,7 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
     %
     round_counter = 1;
 
-    while ((round_counter <= number_of_rounds) && (money >= minimum_bet))
+    while ((round_counter <= number_of_rounds) && (money >= (minimum_bet + sidebet.sidebet_amount)))
         fprintf('kartyak szama: %d\n', length(deck));
         money_per_round(round_counter) = money;
         updateStreaks();
@@ -50,11 +50,17 @@ function BlackjackBestStrategyAutoBet(number_of_decks, money, number_of_rounds)
         bet = zeros(4, 1);
         % belepo fogadas
         bet(1) = bet_amount;
-        fprintf('money: %d, bet_amount: %d\n', money, bet_amount);
-        money = money - bet_amount;
+        fprintf('money: %d, bet_amount: %d side_bet: %s sidebetAmount %d sidebet szorzo %d\n', money, bet_amount, sidebet.name, sidebet.sidebet_amount, sidebet.multiplier);
+        money = money - bet_amount - sidebet.sidebet_amount;
+
+        if sidebet.func_ptr(hand{1}, dealerHand(1))
+            fprintf('Nyert a sidebet\n');
+            money = money + sidebet.sidebet_amount * sidebet.multiplier;
+        else
+            fprintf('vesztett a sidebet\n');
+        end
         % debug kiiratas
         fprintf('dealer keze:\n');
-
         for i = 1:2
             disp(dealerHand(i));
         end
