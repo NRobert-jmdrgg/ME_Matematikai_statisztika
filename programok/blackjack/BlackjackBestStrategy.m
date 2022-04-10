@@ -22,6 +22,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
     if strcmp(bet_amount, 'auto')
         minimum_bet = 5;
         auto_bet = true;
+        bet_amount = decideBetAmount(money, win_streak, lose_streak);
     end
     
     max_number_of_hands = 4;
@@ -277,7 +278,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                 (dealerHand(1).value == 11 && hand{k}(1).value == 8)
             val = true;
         end
-
     end
 
     function val = decideToHit1(dealerHand, hand, k)
@@ -289,7 +289,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                 (hand{k}(1).value == 5 && value_between(5, 6, dealerHand(1).value))
             val = true;
         end
-
     end
 
     function val = decideToDoubleDown1(dealerHand, hand, k)
@@ -298,7 +297,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         if hand{k}(1).value == 5 && value_between(2, 9, dealerHand(1).value)
             val = true;
         end
-
     end
 
     %
@@ -312,7 +310,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                 (hv == 18 && value_between(9, 11, dealerHand(1).value))
             val = true;
         end
-
     end
 
     function val = decideToDoubleDown2(dealerHand, hand, k)
@@ -326,7 +323,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                 (value_between(13, 14, hv) && value_between(5, 6, dealerHand(1).value))
             val = true;
         end
-
     end
 
     %
@@ -341,7 +337,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                 (value_between(12, 16, hv) && value_between(7, 11, dealerHand(1).value))
             val = true;
         end
-
     end
 
     function val = decideToDoubleDown3(dealerHand, hand, k)
@@ -353,7 +348,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                 (hv == 9 && value_between(3, 6, dealerHand(1).value))
             val = true;
         end
-
     end
 
     function updateStreaks()
