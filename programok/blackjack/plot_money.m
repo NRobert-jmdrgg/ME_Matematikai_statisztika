@@ -1,6 +1,6 @@
 function plot_money(money_per_round, starting_money, round_counter)
     figure
-    xvals = 1:round_counter - 1;
+    xvals = 1:round_counter;
     length(xvals);
     length(money_per_round);
     plot(xvals, money_per_round, 'LineWidth', 3);

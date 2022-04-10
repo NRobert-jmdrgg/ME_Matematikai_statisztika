@@ -1,16 +1,29 @@
-function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, sidebet)
+function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, end_cond, print_cond, sb_name, sb_amount)
     %
     %   Plotolashoz szukseges valtozok
     %
     number_of_wins = 0;
     number_of_draws = 0;
     number_of_losses = 0;
+    win_streak = 0;
+    lose_streak = 0;
     
-    % pakli kártya előkészítése
-    % deck = getCards(number_of_decks);
-    % pakli keverése
-    % deck = deck(randperm(length(deck)));
-    % egy taekos max 3x splitelhet
+    if number_of_rounds(end) == '%'
+        percent = str2double(number_of_rounds(1 : end - 1))
+        if percent < 100
+            fprintf('100%%-nal nagyobbank kell lennie\n');
+            return;
+        end
+        percent = (percent / 100);
+    end
+
+    auto_bet = false;
+    minimum_bet = bet_amount;
+    if strcmp(bet_amount, 'auto')
+        minimum_bet = 5;
+        auto_bet = true;
+    end
+    
     max_number_of_hands = 4;
     % kiiratashoz eltarojuk a kezdopenzt
     starting_money = money;
@@ -22,12 +35,18 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
     %
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
     %
-    round_counter = 1;
-
-    while ((round_counter <= number_of_rounds) && (money >= (bet_amount + sidebet.sidebet_amount)))
+    round_counter = 0;
+    sidebet = getSideBet(sb_name, sb_amount, bet_amount);
+    
+    disp(sidebet)
+    (money >= (minimum_bet + sidebet.sidebet_amount))
+    while eval(end_cond) && (money >= (minimum_bet + sidebet.sidebet_amount))
         fprintf('kartyak szama: %d\n', length(deck));
-        money_per_round(round_counter) = money;
-        
+        money_per_round(round_counter + 1) = money;
+        updateStreaks();
+        if auto_bet 
+            bet_amount = decideBetAmount(money, win_streak, lose_streak);
+        end
         % jatekos kezei
         number_of_hands = 1;
         % dealer kap 2 kártyát
@@ -43,7 +62,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         canBlackjack = true;
         canHit = true;
         
-        fprintf('Round %d\n', round_counter);
+        fprintf('Round %d\n', round_counter + 1);
         % a jatekos minden kezere van fogadas (4 emelu tomb inicializalva 0-akkal)
         bet = zeros(4, 1);
         % belepo fogadas
@@ -57,7 +76,10 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         else
             fprintf('vesztett a sidebet\n');
         end
-        
+
+        % uj sidebet
+        sidebet = getSideBet(sb_name, sb_amount, bet_amount);
+
         % debug kiiratas
         fprintf('dealer keze:\n');
         for i = 1:2
@@ -230,7 +252,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         round_counter = round_counter + 1;
     end
 
-    if round_counter < number_of_rounds
+    if eval(print_cond)
         fprintf('elfogyott a penz\n');
     else
         fprintf('vege\n');
@@ -334,4 +356,19 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
 
     end
 
+    function updateStreaks()
+        if length(money_per_round) >= 2
+            if money_per_round(end - 1) > money
+                if win_streak > 0
+                    win_streak = 0;
+                end
+                lose_streak = lose_streak + 1;
+            elseif money_per_round(end - 1) < money
+                if lose_streak > 0
+                    lose_streak = 0;
+                end
+                win_streak = win_streak + 1;
+            end
+        end
+    end 
 end

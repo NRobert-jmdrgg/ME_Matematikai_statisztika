@@ -38,14 +38,9 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
         sb_name = 'None';
         sb_amount = 0;
     end
-    if (~exist('sb_amount', 'var') || isempty(sb_amount)) || strcmp('sb_amount', 'auto')
-        if strcmp(bet_amount, 'auto')
-            sb_amount = ceil(money * 0.1 * 0.25);
-        else
-            sb_amount = ceil(bet_amound / 2);
-        end
-    end
-      
+    if strcmp(sb_amount, 'auto') || isempty(sb_)
+       
+
     global deck;
     deck = getCards(number_of_decks);
     deck = deck(randperm(length(deck)));
