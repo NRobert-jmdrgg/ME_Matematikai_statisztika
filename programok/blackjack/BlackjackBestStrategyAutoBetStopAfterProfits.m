@@ -1,4 +1,4 @@
-function BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, percent_profit, sidebet)
+function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter] = BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, percent_profit, sidebet)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -232,38 +232,13 @@ function BlackjackBestStrategyAutoBetStopAfterProfits(number_of_decks, money, pe
         round_counter = round_counter + 1;
     end
 
-    if money <= minimum_bet
+    if money <= (minimum_bet + sidebet.sidebet_amount)
         fprintf('elfogyott a penz\n');
     else    
         fprintf('vege\n');
         fprintf('Profit: %d\n', money - starting_money);
     end
 
-    %
-    % PLOT
-    %
-
-    figure;
-    winstats = [number_of_wins; number_of_draws; number_of_losses];
-    winstatlabels = {'WIN', 'DRAW', 'LOSS'};
-    b = bar(winstats, 'FaceColor', 'Green');
-    text(1:length(winstats), winstats, num2str(winstats), 'vert', 'bottom', 'horiz', 'center', 'FontSize', 14);
-    set(gca, 'xticklabel', winstatlabels, 'FontSize', 18);
-    set(get(gca, 'Title'), 'String', native2unicode('nyerési arány'));
-    set(gca, 'YTick', [])
-
-    figure
-    xvals = 1:round_counter - 1;
-    length(xvals);
-    length(money_per_round);
-    plot(xvals, money_per_round, 'LineWidth', 3);
-    hold on;
-    
-    plot(xvals, starting_money, 'LineWidth', 3);
-    set(get(gca, 'Title'), 'String', native2unicode('Körönkénti pénz'));
-    set(get(gca, 'XLabel'), 'String', native2unicode('játszmák száma száma'));
-    set(get(gca, 'YLabel'), 'String', native2unicode('pénz'));
-    set(gca, 'FontSize', 18);
     % nested functions
 
     %

@@ -1,4 +1,4 @@
-function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, sidebet)
+function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, sidebet)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -15,7 +15,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
     % kiiratashoz eltarojuk a kezdopenzt
     starting_money = money;
     % clear screen matlab konzolra
-    clc;
+    % clc;
     %
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
     %
@@ -233,32 +233,7 @@ function BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rou
         fprintf('vege\n');
         fprintf('Profit: %d\n', money - starting_money);
     end
-
-    %
-    % PLOT
-    %
-
-    figure;
-    winstats = [number_of_wins; number_of_draws; number_of_losses];
-    winstatlabels = {'WIN', 'DRAW', 'LOSS'};
-    b = bar(winstats, 'FaceColor', 'Green');
-    text(1:length(winstats), winstats, num2str(winstats), 'vert', 'bottom', 'horiz', 'center', 'FontSize', 14);
-    set(gca, 'xticklabel', winstatlabels, 'FontSize', 18);
-    set(get(gca, 'Title'), 'String', native2unicode('nyerési arány'));
-    set(gca, 'YTick', [])
-
-    figure
-    xvals = 1:round_counter - 1;
-    length(xvals);
-    length(money_per_round);
-    plot(xvals, money_per_round, 'LineWidth', 3);
-    hold on;
-    hline = linspace(0, number_of_rounds, starting_money);
-    plot(xvals, starting_money, 'LineWidth', 3);
-    set(get(gca, 'Title'), 'String', native2unicode('Körönkénti pénz'));
-    set(get(gca, 'XLabel'), 'String', native2unicode('játszmák száma száma'));
-    set(get(gca, 'YLabel'), 'String', native2unicode('pénz'));
-    set(gca, 'FontSize', 18);
+    
     % nested functions
 
     %
