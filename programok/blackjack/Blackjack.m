@@ -33,7 +33,7 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
     elseif number_of_rounds(end) == '%'
         percent = str2double(number_of_rounds(1 : end - 1))
         if percent < 100
-            fprintf('100%-nal nagyobbank kell lennie');
+            fprintf('100%%-nal nagyobbank kell lennie\n');
             return;
         end
         percent = (percent / 100);
@@ -78,8 +78,10 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, strateg
         return;
     end
     
-    sidebet.sidebet_amount
-
+    global deck;
+    deck = getCards(number_of_decks);
+    deck = deck(randperm(length(deck)));
+    
     if isnumeric(bet_amount)
         switch strategy
             case 'best'

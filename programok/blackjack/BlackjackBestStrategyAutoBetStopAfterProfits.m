@@ -9,9 +9,9 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
     lose_streak = 0;
 
     % pakli kártya előkészítése
-    deck = getCards(number_of_decks);
+    % deck = getCards(number_of_decks);
     % pakli keverése
-    deck = deck(randperm(length(deck)));
+    % deck = deck(randperm(length(deck)));
     % egy taekos max 3x splitelhet
     max_number_of_hands = 4;
     % kiiratashoz eltarojuk a kezdopenzt
@@ -20,6 +20,11 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
     minimum_bet = 5;
     % clear screen matlab konzolra
     clc;
+
+    fprintf('HEllo from this file\n');
+
+    global deck;
+
     fprintf('kezdo: %d %d nal megall\n', starting_money, starting_money * percent_profit);
     %
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
@@ -29,15 +34,15 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         fprintf('kartyak szama: %d\n', length(deck));
         money_per_round(round_counter) = money;
         updateStreaks();
-        bet_amount = decideBetAmount();
+        bet_amount = decideBetAmount(money, win_streak, lose_streak);
         % jatekos kezei
         number_of_hands = 1;
         % dealer kap 2 kártyát
-        dealerHand = getCardsFromDeck(2);
+        dealerHand = getCardsFromDeck(2, number_of_decks);
         % játékosnak max 4 'keze' lehet.
         hand = {[], [], [], []};
         % játékos kap 2 kártyát
-        hand{1} = getCardsFromDeck(2);
+        hand{1} = getCardsFromDeck(2, number_of_decks);
         %
         %   donteshez szukseges boolean valtozok
         %
@@ -88,15 +93,15 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                     hand{number_of_hands + 1}(1).value = hand{k}(2).value;
                     hand{number_of_hands + 1}(1).name = hand{k}(2).name;
                     hand{number_of_hands + 1}(1).suit = hand{k}(2).suit;
-                    hand{number_of_hands + 1}(2) = getCardsFromDeck(1);
-                    hand{k}(2) = getCardsFromDeck(1);
+                    hand{number_of_hands + 1}(2) = getCardsFromDeck(1, number_of_decks);
+                    hand{k}(2) = getCardsFromDeck(1, number_of_decks);
                     number_of_hands = number_of_hands + 1;
                     % ujrakezdjuk a kezek vizsgalatat
                     k = 1;
                     % csak akkor double down ha meg nem hitelt a jatekos es van elegendo penze es ugy dont, hogy duplaz
                 elseif canDoubleDown && (money >= bet(k)) && decideToDoubleDown1(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     bet(k) = bet(k) + bet_amount;
                     money = money - bet_amount;
                     % vizsgaljuk a kovetkezo kezet
@@ -104,7 +109,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                     % csak akkor hitelhetunk, ha nem spliteltunk asz part.
                 elseif canHit && decideToHit1(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     % hit utan nincs double down
                     canDoubleDown = false;
                 else
@@ -113,13 +118,13 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
             elseif checkIfHasAce(hand{k})
                 if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && money >= bet(k)
                     fprintf('jatekos %d kez double down\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     bet(k) = bet(k) + bet_amount;
                     money = money - bet_amount;
                     k = k + 1;
                 elseif canHit && decideToHit2(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     canDoubleDown = false;
                 else
                     k = k + 1;
@@ -127,13 +132,13 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
             else
                 if canDoubleDown && (money >= bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     bet(k) = bet(k) + bet_amount;
                     money = money - bet_amount;
                     k = k + 1;
                 elseif canHit && decideToHit3(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     canDoubleDown = false;
                 else
                     k = k + 1;
@@ -167,7 +172,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         if busted_hand_count ~= number_of_hands
             % dealer huz addig amig 17 nem lesz  a keze
             while getHandValue(dealerHand) < 17
-                dealerHand(end + 1) = getCardsFromDeck(1);
+                dealerHand(end + 1) = getCardsFromDeck(1, number_of_decks);
             end
 
             fprintf('dealer keze 17 felett:\n');
@@ -336,32 +341,6 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
 
     end
 
-    %
-    % n darab kartyat huz a paklibol
-    %
-    function cards = getCardsFromDeck(n)
-        % minimum kartya a pakliban
-        min_number_of_cards_in_deck = 2;
-
-        if number_of_decks > 2
-            min_number_of_cards_in_deck = 104;
-        end
-
-        if length(deck) < min_number_of_cards_in_deck
-            fprintf('Elfogytak a kartyak uj pakli\n');
-            deck = getCards(number_of_decks);
-            deck = deck(randperm(length(deck)));
-        end
-
-        cards = struct('value', 0, 'name', '', 'suit', '');
-
-        for j = 1:n
-            cards(j) = deck(end);
-            % a tombot stack-kent kezeljuk
-            deck(end) = [];
-        end
-    end
-
     function updateStreaks()
         if length(money_per_round) >= 2
             if money_per_round(end - 1) > money
@@ -377,20 +356,5 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
             end
         end
     end 
-
-    function bet_amount = decideBetAmount()
-        bet_amount = ceil(money * 0.25);
-        if value_between(1, 4, lose_streak)
-            bet_amount = ceil(money * (0.25 - (0.05 * lose_streak)));
-        elseif lose_streak > 4
-            bet_amount = ceil(money * 0.03);
-        end
-        
-        if value_between(1, 14, win_streak)
-            bet_amount = ceil(money * (0.25 + (0.05 * win_streak)));
-        elseif win_streak > 14
-            bet_amount = money;
-        end
-    end
     
 end

@@ -1,4 +1,4 @@
-function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amount, percent_profit, sidebet)
+function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter] = BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amount, percent_profit, sidebet)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -7,15 +7,17 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
     number_of_losses = 0;
     
     % pakli kártya előkészítése
-    deck = getCards(number_of_decks);
+    % deck = getCards(number_of_decks);
     % pakli keverése
-    deck = deck(randperm(length(deck)));
+    % deck = deck(randperm(length(deck)));
     % egy taekos max 3x splitelhet
     max_number_of_hands = 4;
     % kiiratashoz eltarojuk a kezdopenzt
     starting_money = money;
     % clear screen matlab konzolra
     clc;
+
+    global deck;    
 
     %
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
@@ -30,11 +32,11 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
         % jatekos kezei
         number_of_hands = 1;
         % dealer kap 2 kártyát
-        dealerHand = getCardsFromDeck(2);
+        dealerHand = getCardsFromDeck(2, number_of_decks);
         % játékosnak max 4 'keze' lehet.
         hand = {[], [], [], []};
         % játékos kap 2 kártyát
-        hand{1} = getCardsFromDeck(2);
+        hand{1} = getCardsFromDeck(2, number_of_decks);
         %
         %   donteshez szukseges boolean valtozok
         %
@@ -86,15 +88,15 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
                     hand{number_of_hands + 1}(1).value = hand{k}(2).value;
                     hand{number_of_hands + 1}(1).name = hand{k}(2).name;
                     hand{number_of_hands + 1}(1).suit = hand{k}(2).suit;
-                    hand{number_of_hands + 1}(2) = getCardsFromDeck(1);
-                    hand{k}(2) = getCardsFromDeck(1);
+                    hand{number_of_hands + 1}(2) = getCardsFromDeck(1, number_of_decks);
+                    hand{k}(2) = getCardsFromDeck(1, number_of_decks);
                     number_of_hands = number_of_hands + 1;
                     % ujrakezdjuk a kezek vizsgalatat
                     k = 1;
                     % csak akkor double down ha meg nem hitelt a jatekos es van elegendo penze es ugy dont, hogy duplaz
                 elseif canDoubleDown && (money >= bet(k)) && decideToDoubleDown1(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     bet(k) = bet(k) + bet_amount;
                     money = money - bet_amount;
                     % vizsgaljuk a kovetkezo kezet
@@ -102,7 +104,7 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
                     % csak akkor hitelhetunk, ha nem spliteltunk asz part.
                 elseif canHit && decideToHit1(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     % hit utan nincs double down
                     canDoubleDown = false;
                 else
@@ -111,13 +113,13 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
             elseif checkIfHasAce(hand{k})
                 if canDoubleDown && decideToDoubleDown2(dealerHand, hand, k) && (money >= bet(k))
                     fprintf('jatekos %d kez double down\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     bet(k) = bet(k) + bet_amount;
                     money = money - bet_amount;
                     k = k + 1;
                 elseif canHit && decideToHit2(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     canDoubleDown = false;
                 else
                     k = k + 1;
@@ -125,13 +127,13 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
             else
                 if canDoubleDown && (money >=  bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     bet(k) = bet(k) + bet_amount;
                     money = money - bet_amount;
                     k = k + 1;
                 elseif canHit && decideToHit3(dealerHand, hand, k)
                     fprintf('jatekos %d kez hit\n', k);
-                    hand{k}(end + 1) = getCardsFromDeck(1);
+                    hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     canDoubleDown = false;
                 else
                     k = k + 1;
@@ -165,7 +167,7 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
         if busted_hand_count ~= number_of_hands
             % dealer huz addig amig 17 nem lesz  a keze
             while getHandValue(dealerHand) < 17
-                dealerHand(end + 1) = getCardsFromDeck(1);
+                dealerHand(end + 1) = getCardsFromDeck(1, number_of_decks);
             end
             fprintf('dealer keze 17 felett:\n');
             for i = 1:length(dealerHand)
@@ -328,31 +330,6 @@ function BlackjackBestStrategyStopAfterProfits(number_of_decks, money, bet_amoun
                 (hv == 10 && value_between(2, 9, dealerHand(1).value)) || ...
                 (hv == 9 && value_between(3, 6, dealerHand(1).value))
             val = true;
-        end
-
-    end
-
-    %
-    % n darab kartyat huz a paklibol
-    %
-    function cards = getCardsFromDeck(n)
-        % minimum kartya a pakliban
-        min_number_of_cards_in_deck = 2;
-
-        if number_of_decks > 2
-            min_number_of_cards_in_deck = 104;
-        end
-
-        if length(deck) < min_number_of_cards_in_deck
-            fprintf('Elfogytak a kartyak uj pakli\n');
-            deck = getCards(number_of_decks);
-            deck = deck(randperm(length(deck)));
-        end
-        cards = struct('value', 0, 'name', '', 'suit', '');
-        for j = 1:n
-            cards(j) = deck(end);
-            % a tombot stack-kent kezeljuk
-            deck(end) = [];
         end
     end
 end
