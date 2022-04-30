@@ -1,4 +1,4 @@
-function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, end_cond, print_cond, sb_name, sb_amount)
+function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter, sidebet_stats] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, end_cond, print_cond, sb_name, sb_amount)
     %
     %   Plotolashoz szukseges valtozok
     %
@@ -7,9 +7,11 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
     number_of_losses = 0;
     win_streak = 0;
     lose_streak = 0;
-    
+
+    sidebet_stats = zeros(5, 1);
+
     if number_of_rounds(end) == '%'
-        percent = str2double(number_of_rounds(1 : end - 1))
+        percent = str2double(number_of_rounds(1:end - 1))
         if percent < 100
             fprintf('100%%-nal nagyobbank kell lennie\n');
             return;
@@ -24,28 +26,28 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         auto_bet = true;
         bet_amount = decideBetAmount(money, win_streak, lose_streak);
     end
-    
+
     max_number_of_hands = 4;
     % kiiratashoz eltarojuk a kezdopenzt
     starting_money = money;
     % clear screen matlab konzolra
     clc;
-    
+
     global deck;
-    
+
     %
     %   Addig megy a jatek, ameddig el nem telik megadott kor vagy a jatekos mar nem tud a minimum fogadast fizetni.
     %
     round_counter = 0;
     sidebet = getSideBet(sb_name, sb_amount, bet_amount);
-    
-    disp(sidebet)
-    (money >= (minimum_bet + sidebet.sidebet_amount))
+
+    % disp(sidebet)
+    % (money >= (minimum_bet + sidebet.sidebet_amount))
     while eval(end_cond) && (money >= (minimum_bet + sidebet.sidebet_amount))
         fprintf('kartyak szama: %d\n', length(deck));
         money_per_round(round_counter + 1) = money;
         updateStreaks();
-        if auto_bet 
+        if auto_bet
             bet_amount = decideBetAmount(money, win_streak, lose_streak);
         end
         % jatekos kezei
@@ -62,7 +64,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         canDoubleDown = true;
         canBlackjack = true;
         canHit = true;
-        
+
         fprintf('Round %d\n', round_counter + 1);
         % a jatekos minden kezere van fogadas (4 emelu tomb inicializalva 0-akkal)
         bet = zeros(4, 1);
@@ -74,6 +76,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         if sidebet.func_ptr(hand{1}, dealerHand(1))
             fprintf('Nyert a sidebet\n');
             money = money + sidebet.sidebet_amount * sidebet.multiplier;
+            sidebet_stats(sidebet.num) = sidebet_stats(sidebet.num) + 1;
         else
             fprintf('vesztett a sidebet\n');
         end
@@ -147,7 +150,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                     k = k + 1;
                 end
             else
-                if canDoubleDown && (money >=  bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
+                if canDoubleDown && (money >= bet(k)) && decideToDoubleDown3(dealerHand, hand, k)
                     fprintf('jatekos %d kez double down\n', k);
                     hand{k}(end + 1) = getCardsFromDeck(1, number_of_decks);
                     bet(k) = bet(k) + bet_amount;
@@ -212,7 +215,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                 for i = 1:number_of_hands
                     money = money + round(bet(i) * 2);
                 end
-                number_of_wins = number_of_wins + ( number_of_hands - busted_hand_count );
+                number_of_wins = number_of_wins + (number_of_hands - busted_hand_count);
             else
                 for i = 1:number_of_hands
                     hv = getHandValue(hand{i});
@@ -248,7 +251,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         else
             fprintf('a jatekos osszes keze besokalt\n');
         end
-        
+
         fprintf('maradek penz: %d\n', money);
         round_counter = round_counter + 1;
     end
@@ -259,7 +262,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         fprintf('vege\n');
         fprintf('Profit: %d\n', money - starting_money);
     end
-    
+
     % nested functions
 
     %
@@ -352,17 +355,17 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
 
     function updateStreaks()
         if length(money_per_round) >= 2
-            if money_per_round(end - 1) > money
-                if win_streak > 0
-                    win_streak = 0;
-                end
-                lose_streak = lose_streak + 1;
-            elseif money_per_round(end - 1) < money
-                if lose_streak > 0
-                    lose_streak = 0;
-                end
-                win_streak = win_streak + 1;
+            if money_per_round( end - 1) > money
+            if win_streak > 0
+                win_streak = 0;
             end
+            lose_streak = lose_streak + 1;
+        elseif money_per_round(end - 1) < money
+            if lose_streak > 0
+                lose_streak = 0;
+            end
+            win_streak = win_streak + 1;
         end
-    end 
+    end
+end
 end

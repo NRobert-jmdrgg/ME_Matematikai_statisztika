@@ -1,6 +1,6 @@
 function sidebet = getRandomSidebet(sb_amount, bet_amount)
     rs = randi([1, 6]); 
-
+    s_num__ = [1, 2, 3, 4, 5, 0];
     s_names__ = {'flush', 'straight', 'threeOfAKind', 'straightFlush', 'suitedTriple', 'None'};
     s_func_ptrs__ = {@flush, @straight, @threeOfAKind, @straightFlush, @suitedTriple, @nop};
     s_multipliers__ = [5, 10, 30, 40, 100, 0];
@@ -10,6 +10,7 @@ function sidebet = getRandomSidebet(sb_amount, bet_amount)
         s_sidebet_amount__  = sb_amount;
     end
 
+    sidebet.num = s_num__(rs);
     sidebet.name = s_names__{rs};
     sidebet.func_ptr = s_func_ptrs__{rs};
     sidebet.multiplier = s_multipliers__(rs);
