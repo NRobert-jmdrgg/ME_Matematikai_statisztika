@@ -51,7 +51,18 @@ function Blackjack(number_of_decks, money, bet_amount, number_of_rounds, sb_name
 
     [end_cond, print_cond] = condGenerator(number_of_rounds);
 
-    [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter, sidebet_stats] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, end_cond, print_cond, sb_name, sb_amount);
+    [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter, sidebet_stats, final_outcome, number_of_games] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, end_cond, print_cond, sb_name, sb_amount);
+
+    fprintf('győzelmek százalék: %f%%\n', 100 * number_of_wins / number_of_games);
+    fprintf('döntetlen százalék: %f%%\n', 100 * number_of_draws / number_of_games);
+    fprintf('vereség százalék: %f%%\n', 100 * number_of_losses / number_of_games);
+
+    number_of_wins
+    number_of_draws
+    number_of_losses
+    number_of_games
+
+    100 * final_outcome / number_of_games
 
     plot_winstats(number_of_wins, number_of_draws, number_of_losses);
     plot_money(money_per_round, starting_money, round_counter);

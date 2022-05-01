@@ -1,12 +1,16 @@
-function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter, sidebet_stats] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, end_cond, print_cond, sb_name, sb_amount)
+function [number_of_wins, number_of_draws, number_of_losses, money_per_round, round_counter, sidebet_stats, final_outcome, number_of_games] = BlackjackBestStrategy(number_of_decks, money, bet_amount, number_of_rounds, end_cond, print_cond, sb_name, sb_amount)
     %
     %   Plotolashoz szukseges valtozok
     %
     number_of_wins = 0;
     number_of_draws = 0;
     number_of_losses = 0;
+    number_of_games = 0;
     win_streak = 0;
     lose_streak = 0;
+
+    final_outcome = zeros(7, 3);
+    hand_ends = false;
 
     sidebet_stats = zeros(5, 1);
 
@@ -55,15 +59,17 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
         % dealer kap 2 kártyát
         dealerHand = getCardsFromDeck(2, number_of_decks);
         % játékosnak max 4 'keze' lehet.
-        hand = {[], [], [], []};
+        hand = {[]};
         % játékos kap 2 kártyát
         hand{1} = getCardsFromDeck(2, number_of_decks);
+        number_of_games = number_of_games + 1;
         %
         %   donteshez szukseges boolean valtozok
         %
         canDoubleDown = true;
         canBlackjack = true;
         canHit = true;
+        hand_ends = false;
 
         fprintf('Round %d\n', round_counter + 1);
         % a jatekos minden kezere van fogadas (4 emelu tomb inicializalva 0-akkal)
@@ -116,6 +122,7 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
                     hand{number_of_hands + 1}(2) = getCardsFromDeck(1, number_of_decks);
                     hand{k}(2) = getCardsFromDeck(1, number_of_decks);
                     number_of_hands = number_of_hands + 1;
+                    number_of_games = number_of_games + 1;
                     % ujrakezdjuk a kezek vizsgalatat
                     k = 1;
                     % csak akkor double down ha meg nem hitelt a jatekos es van elegendo penze es ugy dont, hogy duplaz
@@ -250,9 +257,11 @@ function [number_of_wins, number_of_draws, number_of_losses, money_per_round, ro
             end
         else
             fprintf('a jatekos osszes keze besokalt\n');
+            hand_ends = true;
         end
 
         fprintf('maradek penz: %d\n', money);
+        final_outcome = update_outcome(final_outcome, hand, dealerHand, hand_ends);
         round_counter = round_counter + 1;
     end
 
